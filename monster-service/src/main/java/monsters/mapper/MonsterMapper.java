@@ -34,7 +34,7 @@ public class MonsterMapper {
                 });
     }
 
-    public Mono<MonsterRatingDTO> mapEntityToRatingDTO(Mono<MonsterEntity> monsterEntityMono, int countBalloons) {
+    public Mono<MonsterRatingDTO> mapEntityToRatingDTO(Mono<MonsterEntity> monsterEntityMono, long countBalloons) {
         return monsterEntityMono.flatMap(monsterEntity -> Mono.just(
                 MonsterRatingDTO.builder()
                         .monsterID(monsterEntity.getId())
