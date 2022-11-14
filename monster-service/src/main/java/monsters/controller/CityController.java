@@ -2,14 +2,13 @@ package monsters.controller;
 
 import lombok.RequiredArgsConstructor;
 import monsters.dto.CityDTO;
-import monsters.dto.PageDTO;
 import monsters.mapper.CityMapper;
-import monsters.mapper.PageMapper;
 import monsters.service.CityService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
@@ -25,37 +24,43 @@ public class CityController {
 
     private final CityService cityService;
     private final CityMapper cityMapper;
-    private final PageMapper<CityDTO> pageMapper;
+
+    private static final int BUFFER_SIZE = 5;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<CityDTO> addCity(@Valid @RequestBody Mono<CityDTO> cityDTOMono) {
-        return cityService.save(cityDTOMono).map(cityMapper::mapEntityToDto);
+    public Mono<CityDTO> addCity(@RequestBody Mono<@Valid CityDTO> cityDTOMono) {
+        return cityMapper.mapEntityToDto(cityService.save(cityDTOMono));
     }
 
     @GetMapping
-    public Mono<ResponseEntity<PageDTO<CityDTO>>> findAll(@RequestParam(defaultValue = "0")
-                                                          @Min(value = 0, message = "must not be less than zero") Mono<Integer> page,
-                                                          @RequestParam(defaultValue = "5")
-                                                          @Max(value = 50, message = "must not be more than 50 characters") Mono<Integer> size) {
+    public Mono<ResponseEntity<Flux<CityDTO>>> findAll(@RequestParam(defaultValue = "0", name = "pageMono")
+                                                               Mono<@Min(value = 0, message = "must not be less than zero") Integer> pageMono,
+                                                       @RequestParam(defaultValue = "5", name = "sizeMono")
+                                                               Mono<@Max(value = 50, message = "must not be more than 50 characters") Integer> sizeMono) {
 
-        var pagesMono = cityService.findAll(page, size);
-        var emptyResponseMono = Mono.just(new ResponseEntity<PageDTO<CityDTO>>(HttpStatus.NO_CONTENT));
-        var pagesDTOMono = pagesMono.map(pageOfCity -> pageOfCity.map(cityMapper::mapEntityToDto)).map(pageMapper::mapToDto);
+        var cityEntityFlux = cityService.findAll(pageMono, sizeMono);
+        var cityDTOFlux = cityEntityFlux.buffer(BUFFER_SIZE)
+                .flatMap(it -> Flux.fromIterable(it)
+                        .map(cityEntity -> cityMapper.mapEntityToDto(Mono.just(cityEntity))))
+                .flatMap(Mono::flux);
 
-        return pagesMono.flatMap(list -> list.isEmpty() ? emptyResponseMono : pagesDTOMono.map(pagesDTO -> new ResponseEntity<>(pagesDTO, HttpStatus.OK)));
+        var emptyResponseMono = Mono.just(new ResponseEntity<Flux<CityDTO>>(HttpStatus.NO_CONTENT));
+        var responseMono = Mono.just(new ResponseEntity<>(cityDTOFlux, HttpStatus.OK));
+
+        return cityEntityFlux.hasElements().flatMap(hasElements -> hasElements ? responseMono : emptyResponseMono);
     }
 
     @DeleteMapping("/{cityId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCity(@PathVariable Mono<UUID> cityId) {
-        cityService.delete(cityId);
+    public void deleteCity(@PathVariable(name = "cityId") Mono<UUID> cityIdMono) {
+        cityService.delete(cityIdMono);
     }
 
     @PutMapping("/{cityId}")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<CityDTO> putCity(@PathVariable Mono<UUID> cityId, @Valid @RequestBody Mono<CityDTO> cityDTOMono) {
-        return cityService.updateById(cityId, cityDTOMono).map(cityMapper::mapEntityToDto);
+    public Mono<CityDTO> putCity(@PathVariable(name = "cityId") Mono<UUID> cityIdMono, @RequestBody Mono<@Valid CityDTO> cityDTOMono) {
+        return cityMapper.mapEntityToDto(cityService.updateById(cityIdMono, cityDTOMono));
     }
 }
 

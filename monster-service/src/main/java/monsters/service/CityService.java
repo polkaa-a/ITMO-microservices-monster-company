@@ -6,9 +6,9 @@ import monsters.dto.CityDTO;
 import monsters.mapper.CityMapper;
 import monsters.model.CityEntity;
 import monsters.repository.CityRepository;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.persistence.EntityExistsException;
@@ -48,8 +48,9 @@ public class CityService {
                 })));
     }
 
-    public Mono<Page<CityEntity>> findAll(Mono<Integer> page, Mono<Integer> size) {
+    public Flux<CityEntity> findAll(Mono<Integer> page, Mono<Integer> size) {
         return page.zipWith(size)
+                .flux()
                 .flatMap(tuple -> cityRepository.findAll(PageRequest.of(tuple.getT1(), tuple.getT2())));
     }
 
