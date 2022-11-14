@@ -30,7 +30,7 @@ public class CityService {
                 .hasElements()
                 .flatMap(hasElements -> hasElements ?
                         Mono.error(new EntityExistsException(EXC_EXIST + ": " + cityDTO.getName())) :
-                        cityRepository.save(cityMapper.mapDtoToEntity(cityDTO))));
+                        cityMapper.mapDtoToEntity(cityDTOMono).flatMap(cityRepository::save)));
     }
 
     public Mono<CityEntity> findByName(Mono<String> cityNameMono) {
@@ -42,9 +42,9 @@ public class CityService {
     public Mono<CityEntity> updateById(Mono<UUID> cityIdMono, Mono<CityDTO> cityDTOMono) {
         return cityIdMono.flatMap(cityId -> cityRepository.findById(cityId)
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + cityId)))
-                .then(cityDTOMono.flatMap(cityDTO -> {
-                    cityDTO.setId(cityId);
-                    return cityRepository.save(cityMapper.mapDtoToEntity(cityDTO));
+                .then(cityMapper.mapDtoToEntity(cityDTOMono).flatMap(cityEntity -> {
+                    cityEntity.setId(cityId);
+                    return cityRepository.save(cityEntity);
                 })));
     }
 
