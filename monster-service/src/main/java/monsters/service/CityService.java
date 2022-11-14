@@ -48,8 +48,8 @@ public class CityService {
                 })));
     }
 
-    public Flux<CityEntity> findAll(Mono<Integer> page, Mono<Integer> size) {
-        return page.zipWith(size)
+    public Flux<CityEntity> findAll(Mono<Integer> pageMono, Mono<Integer> sizeMono) {
+        return pageMono.zipWith(sizeMono)
                 .flux()
                 .flatMap(tuple -> cityRepository.findAll(PageRequest.of(tuple.getT1(), tuple.getT2())));
     }
