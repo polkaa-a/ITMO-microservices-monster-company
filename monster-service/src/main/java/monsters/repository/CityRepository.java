@@ -1,16 +1,13 @@
 package monsters.repository;
 
 import monsters.model.CityEntity;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface CityRepository extends ReactiveCrudRepository<CityEntity, UUID> {
-    Flux<CityEntity> findByName(String name);
-
-    Flux<CityEntity> findAll(Pageable pageable);
+public interface CityRepository extends JpaRepository<CityEntity, UUID> {
+    Optional<CityEntity> findByName(String name);
 }
