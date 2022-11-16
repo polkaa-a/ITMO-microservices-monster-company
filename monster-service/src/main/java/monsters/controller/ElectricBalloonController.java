@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -57,7 +58,8 @@ public class ElectricBalloonController {
 
         var electricBalloonDTOFlux = electricBalloonEntityFlux.buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
-                        .map(electricBalloonEntity -> electricBalloonMapper.mapEntityToDto(Mono.just(electricBalloonEntity))))
+                        .map(electricBalloonEntity -> electricBalloonMapper.mapEntityToDto(Mono.just(electricBalloonEntity)))
+                        .subscribeOn(Schedulers.parallel()))
                 .flatMap(Mono::flux);
 
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<ElectricBalloonDTO>>(HttpStatus.NO_CONTENT));

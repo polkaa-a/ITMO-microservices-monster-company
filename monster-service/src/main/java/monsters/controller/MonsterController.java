@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 
 import javax.validation.Valid;
@@ -125,7 +126,8 @@ public class MonsterController {
     private Mono<ResponseEntity<Flux<MonsterDTO>>> getMonoResponseEntity(Flux<MonsterEntity> monsterEntityFlux) {
         var monsterDTOFlux = monsterEntityFlux.buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
-                        .map(monsterEntity -> monsterMapper.mapEntityToDto(Mono.just(monsterEntity))))
+                        .map(monsterEntity -> monsterMapper.mapEntityToDto(Mono.just(monsterEntity)))
+                        .subscribeOn(Schedulers.parallel()))
                 .flatMap(Mono::flux);
 
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<MonsterDTO>>(HttpStatus.NO_CONTENT));
