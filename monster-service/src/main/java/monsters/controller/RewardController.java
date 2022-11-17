@@ -23,8 +23,8 @@ public class RewardController {
     @GetMapping("/{rewardId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER')")
-    public Mono<RewardDTO> getReward(@PathVariable(name = "rewardId") Mono<UUID> rewardIdMono) {
-        return rewardMapper.mapEntityToDto(rewardService.findById(rewardIdMono));
+    public Mono<RewardDTO> getReward(@PathVariable UUID rewardId) {
+        return rewardMapper.mapEntityToDto(rewardService.findById(rewardId));
     }
 
     @PostMapping
@@ -37,15 +37,15 @@ public class RewardController {
     @DeleteMapping("/{rewardId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('ADMIN')")
-    public void deleteReward(@PathVariable(name = "rewardId") Mono<UUID> rewardIdMono) {
-        rewardService.delete(rewardIdMono);
+    public Mono<Void> deleteReward(@PathVariable UUID rewardId) {
+        return rewardService.delete(rewardId);
     }
 
     @PutMapping("/{rewardId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Mono<RewardDTO> putReward(@PathVariable(name = "rewardId") Mono<UUID> rewardIdMono, @RequestBody Mono<@Valid RewardDTO> rewardDTOMono) {
-        return rewardMapper.mapEntityToDto(rewardService.updateById(rewardIdMono, rewardDTOMono));
+    public Mono<RewardDTO> putReward(@PathVariable UUID rewardId, @RequestBody Mono<@Valid RewardDTO> rewardDTOMono) {
+        return rewardMapper.mapEntityToDto(rewardService.updateById(rewardId, rewardDTOMono));
     }
 
 }

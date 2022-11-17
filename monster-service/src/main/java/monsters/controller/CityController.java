@@ -23,10 +23,9 @@ import java.util.UUID;
 @PreAuthorize("hasAuthority('ADMIN')")
 public class CityController {
 
+    private static final int BUFFER_SIZE = 5;
     private final CityService cityService;
     private final CityMapper cityMapper;
-
-    private static final int BUFFER_SIZE = 5;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -35,12 +34,12 @@ public class CityController {
     }
 
     @GetMapping
-    public Mono<ResponseEntity<Flux<CityDTO>>> findAll(@RequestParam(defaultValue = "0", name = "pageMono")
-                                                               Mono<@Min(value = 0, message = "must not be less than zero") Integer> pageMono,
-                                                       @RequestParam(defaultValue = "5", name = "sizeMono")
-                                                               Mono<@Max(value = 50, message = "must not be more than 50 characters") Integer> sizeMono) {
+    public Mono<ResponseEntity<Flux<CityDTO>>> findAll(@RequestParam(defaultValue = "0")
+                                                       @Min(value = 0, message = "must not be less than zero") int page,
+                                                       @RequestParam(defaultValue = "5")
+                                                       @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var cityEntityFlux = cityService.findAll(pageMono, sizeMono);
+        var cityEntityFlux = cityService.findAll(page, size);
         var cityDTOFlux = cityEntityFlux.buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
                         .map(cityEntity -> cityMapper.mapEntityToDto(Mono.just(cityEntity)))
@@ -55,14 +54,14 @@ public class CityController {
 
     @DeleteMapping("/{cityId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCity(@PathVariable(name = "cityId") Mono<UUID> cityIdMono) {
-        cityService.delete(cityIdMono);
+    public Mono<Void> deleteCity(@PathVariable UUID cityId) {
+        return cityService.delete(cityId);
     }
 
     @PutMapping("/{cityId}")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<CityDTO> putCity(@PathVariable(name = "cityId") Mono<UUID> cityIdMono, @RequestBody Mono<@Valid CityDTO> cityDTOMono) {
-        return cityMapper.mapEntityToDto(cityService.updateById(cityIdMono, cityDTOMono));
+    public Mono<CityDTO> putCity(@PathVariable UUID cityId, @RequestBody Mono<@Valid CityDTO> cityDTOMono) {
+        return cityMapper.mapEntityToDto(cityService.updateById(cityId, cityDTOMono));
     }
 }
 

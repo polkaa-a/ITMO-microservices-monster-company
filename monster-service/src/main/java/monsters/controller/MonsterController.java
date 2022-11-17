@@ -28,24 +28,23 @@ import java.util.UUID;
 @RequestMapping("/monsters")
 public class MonsterController {
 
+    private static final int BUFFER_SIZE = 40;
     private final MonsterService monsterService;
     private final MonsterMapper monsterMapper;
-
-    private static final int BUFFER_SIZE = 40;
 
     @GetMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
-    public Mono<MonsterDTO> getMonster(@PathVariable(name = "monsterId") Mono<UUID> monsterIdMono) {
-        return monsterMapper.mapEntityToDto(monsterService.findById(monsterIdMono));
+    public Mono<MonsterDTO> getMonster(@PathVariable UUID monsterId) {
+        return monsterMapper.mapEntityToDto(monsterService.findById(monsterId));
     }
 
     @GetMapping("/rating")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER')")
-    public Flux<MonsterRatingDTO> getRating(Mono<Integer> pageMono, Mono<Integer> sizeMono) {
+    public Flux<MonsterRatingDTO> getRating(int page, int size) {
         Flux<MonsterRatingDTO> ratingDTO = Flux.empty();
-        Flux<Tuple2<MonsterEntity, Long>> rating = monsterService.getRating(pageMono, sizeMono);
+        Flux<Tuple2<MonsterEntity, Long>> rating = monsterService.getRating(page, size);
 
         return rating.flatMap(tuple -> ratingDTO.mergeWith(monsterMapper.mapEntityToRatingDTO(Mono.just(tuple.getT1()), tuple.getT2())));
     }
@@ -59,68 +58,69 @@ public class MonsterController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
-    public Mono<ResponseEntity<Flux<MonsterDTO>>> findAll(@RequestParam(defaultValue = "0", name = "page")
-                                                                  Mono<@Min(value = 0, message = "must not be less than zero") Integer> pageMono,
-                                                          @RequestParam(defaultValue = "5", name = "size")
-                                                                  Mono<@Max(value = 50, message = "must not be more than 50 characters") Integer> sizeMono) {
+    public Mono<ResponseEntity<Flux<MonsterDTO>>> findAll(@RequestParam(defaultValue = "0")
+                                                          @Min(value = 0, message = "must not be less than zero") int page,
+                                                          @RequestParam(defaultValue = "5")
+                                                          @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var monsterEntityFlux = monsterService.findAll(pageMono, sizeMono);
+        var monsterEntityFlux = monsterService.findAll(page, size);
         return getMonoResponseEntity(monsterEntityFlux);
     }
 
     @GetMapping("/job")
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
-    public Mono<ResponseEntity<Flux<MonsterDTO>>> findAllByJob(@RequestParam(name = "job") Mono<Job> jobMono,
-                                                               @RequestParam(defaultValue = "0", name = "page")
-                                                                       Mono<@Min(value = 0, message = "must not be less than zero") Integer> pageMono,
+    public Mono<ResponseEntity<Flux<MonsterDTO>>> findAllByJob(@RequestParam Job job,
+                                                               @RequestParam(defaultValue = "0")
+                                                               @Min(value = 0, message = "must not be less than zero") int page,
                                                                @RequestParam(defaultValue = "5", name = "size")
-                                                                       Mono<@Max(value = 50, message = "must not be more than 50 characters") Integer> sizeMono) {
+                                                               @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var monsterEntityFlux = monsterService.findAllByJob(jobMono, pageMono, sizeMono);
+        var monsterEntityFlux = monsterService.findAllByJob(job, page, size);
         return getMonoResponseEntity(monsterEntityFlux);
     }
 
     @GetMapping("/fear-action/{date}")
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
-    public Mono<ResponseEntity<Flux<MonsterDTO>>> findAllByFearActionDate(@PathVariable(name = "date") @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Mono<Date> dateMono, @RequestParam(defaultValue = "0", name = "page")
-            Mono<@Min(value = 0, message = "must not be less than zero") Integer> pageMono,
-                                                                          @RequestParam(defaultValue = "5", name = "size")
-                                                                                  Mono<@Max(value = 50, message = "must not be more than 50 characters") Integer> sizeMono) {
+    public Mono<ResponseEntity<Flux<MonsterDTO>>> findAllByFearActionDate(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date,
+                                                                          @RequestParam(defaultValue = "0")
+                                                                          @Min(value = 0, message = "must not be less than zero") int page,
+                                                                          @RequestParam(defaultValue = "5")
+                                                                          @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var monsterEntityFlux = monsterService.findAllByDateOfFearAction(dateMono, pageMono, sizeMono);
+        var monsterEntityFlux = monsterService.findAllByDateOfFearAction(date, page, size);
         return getMonoResponseEntity(monsterEntityFlux);
     }
 
     @GetMapping("/infection/{date}")
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
-    public Mono<ResponseEntity<Flux<MonsterDTO>>> findAllByInfectionDate(@PathVariable(name = "date") @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Mono<Date> dateMono, @RequestParam(defaultValue = "0", name = "page")
-            Mono<@Min(value = 0, message = "must not be less than zero") Integer> pageMono,
-                                                                         @RequestParam(defaultValue = "5", name = "sizeMono")
-                                                                                 Mono<@Max(value = 50, message = "must not be more than 50 characters") Integer> sizeMono) {
+    public Mono<ResponseEntity<Flux<MonsterDTO>>> findAllByInfectionDate(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date, @RequestParam(defaultValue = "0")
+    @Min(value = 0, message = "must not be less than zero") int page,
+                                                                         @RequestParam(defaultValue = "5")
+                                                                         @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var monsterEntityFlux = monsterService.findAllByInfectionDate(dateMono, pageMono, sizeMono);
+        var monsterEntityFlux = monsterService.findAllByInfectionDate(date, page, size);
         return getMonoResponseEntity(monsterEntityFlux);
     }
 
     @PatchMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('RECRUITER')")
-    public Mono<MonsterDTO> updateJobById(@PathVariable(name = "monsterId") Mono<UUID> monsterIdMono, @RequestParam(name = "job") Mono<Job> jobMono) {
-        return monsterMapper.mapEntityToDto(monsterService.updateJobById(jobMono, monsterIdMono));
+    public Mono<MonsterDTO> updateJobById(@PathVariable UUID monsterId, @RequestParam Job job) {
+        return monsterMapper.mapEntityToDto(monsterService.updateJobById(job, monsterId));
     }
 
     @DeleteMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('ADMIN')")
-    public void deleteMonster(@PathVariable(name = "monsterId") Mono<UUID> monsterIdMono) {
-        monsterService.delete(monsterIdMono);
+    public Mono<Void> deleteMonster(@PathVariable UUID monsterId) {
+        return monsterService.delete(monsterId);
     }
 
     @PutMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Mono<MonsterDTO> putMonster(@PathVariable(name = "monsterId") Mono<UUID> monsterIdMono, @RequestBody Mono<@Valid MonsterDTO> monsterDTOMono) {
-        return monsterMapper.mapEntityToDto(monsterService.updateById(monsterIdMono, monsterDTOMono));
+    public Mono<MonsterDTO> putMonster(@PathVariable UUID monsterId, @RequestBody Mono<@Valid MonsterDTO> monsterDTOMono) {
+        return monsterMapper.mapEntityToDto(monsterService.updateById(monsterId, monsterDTOMono));
     }
 
     private Mono<ResponseEntity<Flux<MonsterDTO>>> getMonoResponseEntity(Flux<MonsterEntity> monsterEntityFlux) {

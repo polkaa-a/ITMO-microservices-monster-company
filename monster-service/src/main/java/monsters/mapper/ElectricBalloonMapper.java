@@ -34,8 +34,7 @@ public class ElectricBalloonMapper {
                         electricBalloonEntity.getFearAction())));
 
         var cityEntityMono = electricBalloonDTOMono.flatMap(
-                electricBalloonEntity -> cityService.findByName(Mono.just(
-                        electricBalloonEntity.getCityName())));
+                electricBalloonEntity -> cityService.findByName(electricBalloonEntity.getCityName()));
 
         return Mono.zip(electricBalloonDTOMono, fearActionEntityMono, cityEntityMono)
                 .flatMap(tuple -> Mono.just(

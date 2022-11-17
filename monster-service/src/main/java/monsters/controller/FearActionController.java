@@ -23,8 +23,8 @@ public class FearActionController {
     @GetMapping("/{fearActionId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER')")
-    public Mono<FearActionDTO> getFearAction(@PathVariable(name = "fearActionId") Mono<UUID> fearActionIdMono) {
-        return fearActionMapper.mapEntityToDto(fearActionService.findById(fearActionIdMono));
+    public Mono<FearActionDTO> getFearAction(@PathVariable UUID fearActionId) {
+        return fearActionMapper.mapEntityToDto(fearActionService.findById(fearActionId));
     }
 
     @PostMapping
@@ -37,15 +37,15 @@ public class FearActionController {
     @DeleteMapping("/{fearActionId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('ADMIN')")
-    public void deleteFearAction(@PathVariable(name = "fearActionId") Mono<UUID> fearActionIdMono) {
-        fearActionService.delete(fearActionIdMono);
+    public Mono<Void> deleteFearAction(@PathVariable UUID fearActionId) {
+        return fearActionService.delete(fearActionId);
     }
 
     @PutMapping("/{fearActionId}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Mono<FearActionDTO> putFearAction(@PathVariable(name = "fearActionId") Mono<UUID> fearActionIdMono, @RequestBody Mono<@Valid FearActionDTO> fearActionMono) {
-        return fearActionMapper.mapEntityToDto(fearActionService.updateById(fearActionIdMono, fearActionMono));
+    public Mono<FearActionDTO> putFearAction(@PathVariable UUID fearActionId, @RequestBody Mono<@Valid FearActionDTO> fearActionMono) {
+        return fearActionMapper.mapEntityToDto(fearActionService.updateById(fearActionId, fearActionMono));
     }
 
 }
