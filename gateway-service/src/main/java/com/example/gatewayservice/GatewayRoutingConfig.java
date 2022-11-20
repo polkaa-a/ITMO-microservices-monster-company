@@ -15,6 +15,16 @@ public class GatewayRoutingConfig {
                         .uri("http://localhost:8081"))
                 .route("user-service", route -> route.path("/roles/**")
                         .uri("http://localhost:8081"))
+                .route("monster-service", route -> route.path("/monsters/**")
+                        .uri("http://localhost:8082"))
+                .route("monster-service", route -> route.path("/cities/**")
+                        .uri("http://localhost:8082"))
+                .route("monster-service", route -> route.path("/electric-balloons/**")
+                        .uri("http://localhost:8082"))
+                .route("monster-service", route -> route.path("/fear-actions/**")
+                        .uri("http://localhost:8082"))
+                .route("monster-service", route -> route.path("/rewards/**")
+                        .uri("http://localhost:8082"))
                 .build();
     }
 }
