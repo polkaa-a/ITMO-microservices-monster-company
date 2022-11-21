@@ -1,7 +1,6 @@
 package monsters.controller.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -71,13 +70,13 @@ public class ResponseExceptionHandler {
         );
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ErrorMessage handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
-        return new ErrorMessage(
-                HttpStatus.UNAUTHORIZED,
-                "invalid user credentials",
-                request.getDescription(false)
-        );
-    }
+//    @ExceptionHandler(BadCredentialsException.class)
+//    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+//    public ErrorMessage handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
+//        return new ErrorMessage(
+//                HttpStatus.UNAUTHORIZED,
+//                "invalid user credentials",
+//                request.getDescription(false)
+//        );
+//    }
 }
