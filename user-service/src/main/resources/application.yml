@@ -1,20 +1,22 @@
 spring:
   application:
     name: user-service
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:monster_company}
+  r2dbc:
+    url: r2dbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:monster_company}?currentSchema=user_info
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:12345}
-  jpa:
-    show-sql: true
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    generate-ddl: false
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: false
+  liquibase:
+    enabled: true
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:monster_company}?currentSchema=user_info
+    user: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:12345}
+    change-log: classpath:db/changelog/db.changelog-master.yml
+    default-schema: user_info
+
+jwt:
+  secret: spring
+  expiration: 3600000
 
 server:
   port: 8081
