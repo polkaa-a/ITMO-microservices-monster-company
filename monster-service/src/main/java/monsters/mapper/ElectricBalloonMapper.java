@@ -1,9 +1,11 @@
 package monsters.mapper;
 
 import lombok.RequiredArgsConstructor;
-import monsters.dto.ElectricBalloonDTO;
+import monsters.dto.answer.AnswerElectricBalloonDTO;
+import monsters.dto.request.RequestElectricBalloonDTO;
+import monsters.model.CityEntity;
 import monsters.model.ElectricBalloonEntity;
-import monsters.service.CityService;
+import monsters.model.FearActionEntity;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -11,31 +13,23 @@ import reactor.core.publisher.Mono;
 @Component
 public class ElectricBalloonMapper {
 
-    private final CityService cityService;
     private final FearActionMapper fearActionMapper;
 
-    public Mono<ElectricBalloonDTO> mapEntityToDto(Mono<ElectricBalloonEntity> electricBalloonEntityMono) {
+    public Mono<AnswerElectricBalloonDTO> mapEntityToDto(Mono<ElectricBalloonEntity> electricBalloonEntityMono) {
         var fearActionDTOMono = electricBalloonEntityMono.flatMap(
                 electricBalloonEntity -> fearActionMapper.mapEntityToDto(Mono.just(
                         electricBalloonEntity.getFearActionEntity())));
 
         return electricBalloonEntityMono.zipWith(fearActionDTOMono)
                 .flatMap(tuple -> Mono.just(
-                        ElectricBalloonDTO.builder()
+                        AnswerElectricBalloonDTO.builder()
                                 .id(tuple.getT1().getId())
                                 .fearAction(tuple.getT2())
-                                .cityName(tuple.getT1().getCityEntity().getName())
+                                .city(tuple.getT1().getCityEntity())
                                 .build()));
     }
 
-    public Mono<ElectricBalloonEntity> mapDtoToEntity(Mono<ElectricBalloonDTO> electricBalloonDTOMono) {
-        var fearActionEntityMono = electricBalloonDTOMono.flatMap(
-                electricBalloonEntity -> fearActionMapper.mapDtoToEntity(Mono.just(
-                        electricBalloonEntity.getFearAction())));
-
-        var cityEntityMono = electricBalloonDTOMono.flatMap(
-                electricBalloonEntity -> cityService.findByName(electricBalloonEntity.getCityName()));
-
+    public Mono<ElectricBalloonEntity> mapDtoToEntity(Mono<RequestElectricBalloonDTO> electricBalloonDTOMono, Mono<CityEntity> cityEntityMono, Mono<FearActionEntity> fearActionEntityMono) {
         return Mono.zip(electricBalloonDTOMono, fearActionEntityMono, cityEntityMono)
                 .flatMap(tuple -> Mono.just(
                         ElectricBalloonEntity.builder()
