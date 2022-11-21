@@ -15,6 +15,8 @@ public class GatewayRoutingConfig {
                         .uri("http://localhost:8081"))
                 .route("user-service", route -> route.path("/roles/**")
                         .uri("http://localhost:8081"))
+                .route("infection-service", route -> route.path("/infections/**")
+                        .uri("http://localhost:8083"))
                 .build();
     }
 }
