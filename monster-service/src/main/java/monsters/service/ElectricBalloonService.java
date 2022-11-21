@@ -2,9 +2,11 @@ package monsters.service;
 
 import lombok.RequiredArgsConstructor;
 import monsters.controller.exception.NotFoundException;
-import monsters.dto.ElectricBalloonDTO;
+import monsters.dto.request.RequestElectricBalloonDTO;
 import monsters.mapper.ElectricBalloonMapper;
+import monsters.model.CityEntity;
 import monsters.model.ElectricBalloonEntity;
+import monsters.model.FearActionEntity;
 import monsters.repository.ElectricBalloonRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -23,68 +25,73 @@ public class ElectricBalloonService {
     private final ElectricBalloonRepository electricBalloonRepository;
     private final ElectricBalloonMapper electricBalloonMapper;
 
-    public Mono<ElectricBalloonEntity> save(Mono<ElectricBalloonDTO> electricBalloonDTOMono) {
-        return electricBalloonMapper.mapDtoToEntity(electricBalloonDTOMono).flatMap(electricBalloonEntity ->
-                Mono.fromCallable(() -> electricBalloonRepository.save(electricBalloonEntity))
+    private final FearActionService fearActionService;
+    private final CityService cityService;
+
+    private Mono<FearActionEntity> getFearActionEntityMono(Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
+        return electricBalloonDTOMono.flatMap(electricBalloonDTO ->
+                fearActionService.findById(electricBalloonDTO.getFearActionId()));
+    }
+
+    private Mono<CityEntity> getCityEntityMono(Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
+        return electricBalloonDTOMono.flatMap(electricBalloonEntity ->
+                cityService.findByName(electricBalloonEntity.getCityName()));
+    }
+
+    public Mono<ElectricBalloonEntity> save(Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
+        return electricBalloonMapper
+                .mapDtoToEntity(electricBalloonDTOMono, getCityEntityMono(electricBalloonDTOMono), getFearActionEntityMono(electricBalloonDTOMono))
+                .flatMap(electricBalloonEntity -> Mono.fromCallable(() -> electricBalloonRepository.save(electricBalloonEntity))
                         .subscribeOn(Schedulers.boundedElastic()));
     }
 
     public Mono<ElectricBalloonEntity> findById(UUID electricBalloonId) {
-        var balloonsMonoOptional = Mono.fromCallable(() ->
-                        electricBalloonRepository.findById(electricBalloonId))
+        var balloonEntityFlux = Mono.fromCallable(() ->
+                        electricBalloonRepository.findById(electricBalloonId).stream())
+                .flux()
+                .flatMap(Flux::fromStream)
                 .subscribeOn(Schedulers.boundedElastic());
 
-        Flux<ElectricBalloonEntity> balloonsFlux = Flux.empty();
-
-        return balloonsMonoOptional
-                .flatMap(optional -> {
-                    optional.map(electricBalloonEntity -> balloonsFlux.mergeWith(Mono.just(electricBalloonEntity)));
-                    return balloonsFlux.single();
-                })
+        return balloonEntityFlux
+                .singleOrEmpty()
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + electricBalloonId)));
     }
 
 
     public Flux<ElectricBalloonEntity> findAllFilledByDate(Date date, int page, int size) {
-        var balloonsMonoPage = Mono.fromCallable(() ->
-                        electricBalloonRepository.findAllFilledByDate(date, PageRequest.of(page, size)))
-                .subscribeOn(Schedulers.boundedElastic());
-
-        Flux<ElectricBalloonEntity> balloonsFlux = Flux.empty();
-
-        return balloonsMonoPage
+        return Mono.fromCallable(() ->
+                        electricBalloonRepository.findAllFilledByDate(date, PageRequest.of(page, size)).stream())
                 .flux()
-                .flatMap(p -> {
-                    p.map(electricBalloonEntity -> balloonsFlux.mergeWith(Mono.just(electricBalloonEntity)));
-                    return balloonsFlux;
-                });
+                .flatMap(Flux::fromStream)
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    public Flux<ElectricBalloonEntity> findAllByMonsterId(UUID monsterId, int page, int size) {
+        return Mono.fromCallable(() ->
+                        electricBalloonRepository.findAllByMonsterId(monsterId, PageRequest.of(page, size)).stream())
+                .flux()
+                .flatMap(Flux::fromStream)
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     public Flux<ElectricBalloonEntity> findAllFilledByDateAndCity(Date date, UUID citiId, int page, int size) {
-
-        var balloonsMonoPage = Mono.fromCallable(() ->
-                        electricBalloonRepository.findAllFilledByDateAndCity(date, citiId, PageRequest.of(page, size)))
-                .subscribeOn(Schedulers.boundedElastic());
-
-        Flux<ElectricBalloonEntity> balloonsFlux = Flux.empty();
-
-        return balloonsMonoPage
+        return Mono.fromCallable(() ->
+                        electricBalloonRepository.findAllFilledByDateAndCity(date, citiId, PageRequest.of(page, size)).stream())
                 .flux()
-                .flatMap(p -> {
-                    p.map(electricBalloonEntity -> balloonsFlux.mergeWith(Mono.just(electricBalloonEntity)));
-                    return balloonsFlux;
-                });
+                .flatMap(Flux::fromStream)
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
-    public Mono<ElectricBalloonEntity> updateById(UUID electricBalloonId, Mono<ElectricBalloonDTO> electricBalloonDTOMono) {
+    public Mono<ElectricBalloonEntity> updateById(UUID electricBalloonId, Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
         return Mono.fromCallable(() -> electricBalloonRepository.findById(electricBalloonId))
                 .subscribeOn(Schedulers.boundedElastic())
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + electricBalloonId)))
-                .then(electricBalloonMapper.mapDtoToEntity(electricBalloonDTOMono).flatMap(electricBalloonEntity -> {
-                    electricBalloonEntity.setId(electricBalloonId);
-                    return Mono.fromCallable(() -> electricBalloonRepository.save(electricBalloonEntity))
-                            .subscribeOn(Schedulers.boundedElastic());
-                }));
+                .then(electricBalloonMapper.mapDtoToEntity(electricBalloonDTOMono, getCityEntityMono(electricBalloonDTOMono), getFearActionEntityMono(electricBalloonDTOMono))
+                        .flatMap(electricBalloonEntity -> {
+                            electricBalloonEntity.setId(electricBalloonId);
+                            return Mono.fromCallable(() -> electricBalloonRepository.save(electricBalloonEntity))
+                                    .subscribeOn(Schedulers.boundedElastic());
+                        }));
     }
 
     public Mono<Void> delete(UUID electricBalloonId) {

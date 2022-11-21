@@ -11,6 +11,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import javax.persistence.EntityExistsException;
 import java.util.UUID;
 
 @Service
@@ -24,23 +25,31 @@ public class RewardService {
     private final RewardRepository rewardRepository;
 
     public Mono<RewardEntity> save(Mono<RewardDTO> rewardDTOMono) {
-        return rewardMapper.mapDtoToEntity(rewardDTOMono).flatMap(rewardEntity ->
-                Mono.fromCallable(() -> rewardRepository.save(rewardEntity))
+
+        Mono<RewardEntity> errorMono = rewardDTOMono
+                .flatMap(rewardDTO -> Mono.error(new EntityExistsException(EXC_EXIST + ": " + rewardDTO.getMoney())));
+
+        var savedEntityMono = rewardMapper.mapDtoToEntity(rewardDTOMono)
+                .flatMap(rewardEntity -> Mono.fromCallable(() -> rewardRepository.save(rewardEntity))
                         .subscribeOn(Schedulers.boundedElastic()));
+
+        return rewardDTOMono.flatMap(rewardDTO ->
+                Mono.fromCallable(() -> rewardRepository.findByMoney(rewardDTO.getMoney()).stream())
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .flux()
+                        .flatMap(Flux::fromStream)
+                        .hasElements().flatMap(hasElements -> hasElements ? errorMono : savedEntityMono));
     }
 
     public Mono<RewardEntity> findById(UUID rewardId) {
+        var rewardEntityFlux = Mono.fromCallable(() ->
+                        rewardRepository.findById(rewardId).stream())
+                .flux()
+                .flatMap(Flux::fromStream)
+                .subscribeOn(Schedulers.boundedElastic());
 
-        var rewardsMonoOptional = Mono.fromCallable(() ->
-                rewardRepository.findById(rewardId)).subscribeOn(Schedulers.boundedElastic());
-
-        Flux<RewardEntity> rewardsFlux = Flux.empty();
-
-        return rewardsMonoOptional
-                .flatMap(optional -> {
-                    optional.map(rewardEntity -> rewardsFlux.mergeWith(Mono.just(rewardEntity)));
-                    return rewardsFlux.single();
-                })
+        return rewardEntityFlux
+                .singleOrEmpty()
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + rewardId)));
     }
 

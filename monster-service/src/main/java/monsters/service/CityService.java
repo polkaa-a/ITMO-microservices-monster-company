@@ -33,29 +33,25 @@ public class CityService {
                 .flatMap(cityEntity -> Mono.fromCallable(() -> cityRepository.save(cityEntity))
                         .subscribeOn(Schedulers.boundedElastic()));
 
-        Flux<CityEntity> cityFlux = Flux.empty();
-
         return cityDTOMono.flatMap(cityDTO ->
-                Mono.fromCallable(() -> cityRepository.findByName(cityDTO.getName()))
+                Mono.fromCallable(() -> cityRepository.findByName(cityDTO.getName()).stream())
                         .subscribeOn(Schedulers.boundedElastic())
-                        .flatMap(optional -> {
-                            optional.map(cityEntity -> cityFlux.mergeWith(Mono.just(cityEntity)));
-                            return cityFlux.hasElements().flatMap(hasElements -> hasElements ? errorMono : savedEntityMono);
-                        }));
+                        .flux()
+                        .flatMap(Flux::fromStream)
+                        .hasElements().flatMap(hasElements -> hasElements ? errorMono : savedEntityMono));
+
     }
 
     public Mono<CityEntity> findByName(String cityName) {
 
-        var citiesMonoOptional = Mono.fromCallable(() ->
-                cityRepository.findByName(cityName)).subscribeOn(Schedulers.boundedElastic());
+        var cityEntityFlux = Mono.fromCallable(() ->
+                        cityRepository.findByName(cityName).stream())
+                .flux()
+                .flatMap(Flux::fromStream)
+                .subscribeOn(Schedulers.boundedElastic());
 
-        Flux<CityEntity> citiesFlux = Flux.empty();
-
-        return citiesMonoOptional
-                .flatMap(optional -> {
-                    optional.map(cityEntity -> citiesFlux.mergeWith(Mono.just(cityEntity)));
-                    return citiesFlux.single();
-                })
+        return cityEntityFlux
+                .singleOrEmpty()
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_NAME + ": " + cityName)));
     }
 
@@ -71,17 +67,11 @@ public class CityService {
     }
 
     public Flux<CityEntity> findAll(int page, int size) {
-        var citiesMonoPage = Mono.fromCallable(() -> cityRepository.findAll(PageRequest.of(page, size)))
-                .subscribeOn(Schedulers.boundedElastic());
-
-        Flux<CityEntity> citiesFlux = Flux.empty();
-
-        return citiesMonoPage
+        return Mono.fromCallable(()
+                        -> cityRepository.findAll(PageRequest.of(page, size)).stream())
                 .flux()
-                .flatMap(p -> {
-                    p.map(cityEntity -> citiesFlux.mergeWith(Mono.just(cityEntity)));
-                    return citiesFlux;
-                });
+                .flatMap(Flux::fromStream)
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     public Mono<Void> delete(UUID cityId) {
