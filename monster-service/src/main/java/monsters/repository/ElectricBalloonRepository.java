@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -30,6 +31,11 @@ public interface ElectricBalloonRepository extends JpaRepository<ElectricBalloon
             "join e.fearActionEntity f " +
             "where f.monsterEntity.id=:monsterId")
     Page<ElectricBalloonEntity> findAllByMonsterId(@Param("monsterId") UUID monsterId, Pageable pageable);
+
+    @Query("select e from ElectricBalloonEntity e " +
+            "join e.fearActionEntity f " +
+            "where f.monsterEntity.id=:monsterId")
+    Optional<ElectricBalloonEntity> findAllByMonsterId(@Param("monsterId") UUID monsterId);
 
 }
 
