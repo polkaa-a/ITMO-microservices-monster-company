@@ -71,9 +71,4 @@ public class MonsterEntity {
     @ToString.Exclude
     private List<RewardEntity> rewards;
 
-    @OneToMany(mappedBy = "monsterEntity")
-    @ToString.Exclude
-    @Fetch(FetchMode.SUBSELECT)
-    private List<FearActionEntity> fearActions;
-
 }
