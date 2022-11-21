@@ -13,6 +13,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -38,10 +39,13 @@ public class MonsterMapper {
                             monsterDTO.setUserId(tuple.getT1().getUserId());
                             return Mono.fromCallable(tuple.getT2()::toIterable).subscribeOn(Schedulers.boundedElastic())
                                     .flatMap(iterable -> {
-                                        monsterDTO.setRewards((List<RewardDTO>) iterable);
+                                        List<RewardDTO> rewards = new ArrayList<>();
+                                        iterable.forEach(rewards::add);
+                                        monsterDTO.setRewards(rewards);
                                         return Mono.just(monsterDTO);
                                     });
                         }));
+
     }
 
     public Mono<MonsterEntity> mapDtoToEntity(Mono<RequestMonsterDTO> monsterDTOMono) {
