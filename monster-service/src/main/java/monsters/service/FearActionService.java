@@ -7,6 +7,8 @@ import monsters.mapper.FearActionMapper;
 import monsters.model.FearActionEntity;
 import monsters.model.MonsterEntity;
 import monsters.repository.FearActionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -16,15 +18,19 @@ import reactor.core.scheduler.Schedulers;
 import java.util.Date;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Service
 public class FearActionService {
 
     private static final String EXC_MES_ID = "none fear action was found by id";
     private final FearActionRepository fearActionRepository;
     private final FearActionMapper fearActionMapper;
-
     private final MonsterService monsterService;
+
+    public FearActionService(@Lazy MonsterService monsterService, FearActionRepository fearActionRepository, FearActionMapper fearActionMapper){
+        this.fearActionRepository = fearActionRepository;
+        this.monsterService = monsterService;
+        this.fearActionMapper = fearActionMapper;
+    }
 
     private Mono<MonsterEntity> getMonsterEntityMono(Mono<RequestFearActionDTO> fearActionDTOMono) {
         return fearActionDTOMono.flatMap(fearActionDTO -> monsterService.findById(fearActionDTO.getMonsterId()));

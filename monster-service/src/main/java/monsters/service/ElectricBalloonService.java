@@ -8,6 +8,7 @@ import monsters.model.CityEntity;
 import monsters.model.ElectricBalloonEntity;
 import monsters.model.FearActionEntity;
 import monsters.repository.ElectricBalloonRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -17,7 +18,6 @@ import reactor.core.scheduler.Schedulers;
 import java.util.Date;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Service
 public class ElectricBalloonService {
 
@@ -27,6 +27,13 @@ public class ElectricBalloonService {
 
     private final FearActionService fearActionService;
     private final CityService cityService;
+
+    public ElectricBalloonService(@Lazy FearActionService fearActionService, CityService cityService, ElectricBalloonMapper electricBalloonMapper, ElectricBalloonRepository electricBalloonRepository){
+        this.electricBalloonRepository = electricBalloonRepository;
+        this.electricBalloonMapper = electricBalloonMapper;
+        this.cityService = cityService;
+        this.fearActionService = fearActionService;
+    }
 
     private Mono<FearActionEntity> getFearActionEntityMono(Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
         return electricBalloonDTOMono.flatMap(electricBalloonDTO ->
