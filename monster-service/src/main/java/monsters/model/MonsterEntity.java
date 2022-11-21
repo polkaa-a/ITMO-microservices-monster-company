@@ -61,7 +61,7 @@ public class MonsterEntity {
     @Column(name = "salary")
     private int salary;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "monster_reward",
             joinColumns = @JoinColumn(name = "monster_id"),
