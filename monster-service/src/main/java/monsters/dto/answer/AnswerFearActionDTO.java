@@ -1,9 +1,9 @@
-package monsters.dto.monster;
+package monsters.dto.answer;
 
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.sql.Date;
 import java.util.UUID;
 
 @Getter
@@ -11,12 +11,17 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MonsterRatingDTO {
+public class AnswerFearActionDTO {
+
+    private UUID id;
 
     @NotNull(message = "shouldn't be null")
-    private UUID monsterID;
+    private AnswerMonsterDTO monster;
 
     @NotNull(message = "shouldn't be null")
-    @Size(message = "shouldn't be less than 0")
-    private Long countBalloons;
+    private UUID doorId;
+
+    @NotNull(message = "shouldn't be null")
+    private Date date;
+
 }

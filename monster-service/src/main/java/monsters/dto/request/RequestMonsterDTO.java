@@ -1,14 +1,11 @@
-package monsters.dto.monster;
+package monsters.dto.request;
 
 import lombok.*;
-import monsters.dto.FearActionDTO;
-import monsters.dto.RewardDTO;
 import monsters.enums.Gender;
 import monsters.enums.Job;
 
 import javax.validation.constraints.*;
 import java.sql.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -16,7 +13,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MonsterDTO {
+public class RequestMonsterDTO {
 
     private UUID id;
 
@@ -44,11 +41,5 @@ public class MonsterDTO {
     @NotNull(message = "shouldn't be null")
     @Min(value = 0, message = "shouldn't be less than 0")
     private Integer salary;
-
-    @NotNull(message = "can be empty, but shouldn't be null")
-    private List<RewardDTO> rewards;
-
-    @NotNull(message = "can be empty, but shouldn't be null")
-    private List<FearActionDTO> fearActions;
 
 }

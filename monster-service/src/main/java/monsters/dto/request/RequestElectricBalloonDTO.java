@@ -1,4 +1,4 @@
-package monsters.dto;
+package monsters.dto.request;
 
 import lombok.*;
 
@@ -12,12 +12,12 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ElectricBalloonDTO {
+public class RequestElectricBalloonDTO {
 
     private UUID id;
 
     @NotNull(message = "shouldn't be null")
-    private FearActionDTO fearAction;
+    private UUID fearActionId;
 
     @NotBlank(message = "shouldn't be empty")
     @Size(max = 20, message = "shouldn't exceed 20 characters")
