@@ -9,8 +9,9 @@ import java.util.UUID;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class DoorEntity {
+public class InfectedThingEntity {
 
     private UUID id;
-    private boolean isActive;
+    private String name;
+    private DoorEntity door;
 }

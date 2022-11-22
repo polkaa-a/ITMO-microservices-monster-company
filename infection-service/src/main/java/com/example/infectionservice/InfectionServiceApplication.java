@@ -1,7 +1,9 @@
 package com.example.infectionservice;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -22,14 +24,30 @@ public class InfectionServiceApplication {
         SpringApplication.run(InfectionServiceApplication.class, args);
     }
 
+//    @Bean
+//    @ConfigurationProperties("spring.datasource")
+//    public DataSource dataSource() {
+//        return DataSourceBuilder.create().build();
+//    }
+//
+//    @Bean
+//    public JdbcTemplate dataSourceJdbcTemplate(DataSource dataSource) {
+//        return new JdbcTemplate(dataSource);
+//    }
+
+
+
     @Bean
+    @Primary
     @ConfigurationProperties("spring.datasource")
-    public DataSource dataSource() {
-        return DataSourceBuilder.create().build();
+    public DataSourceProperties dataSourceProperties() {
+        return new DataSourceProperties();
     }
 
     @Bean
-    public JdbcTemplate dataSourceJdbcTemplate(DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
+    @ConfigurationProperties("spring.datasource")
+    public HikariDataSource dataSource(DataSourceProperties properties) {
+        return properties.initializeDataSourceBuilder().type(HikariDataSource.class)
+                .build();
     }
 }
