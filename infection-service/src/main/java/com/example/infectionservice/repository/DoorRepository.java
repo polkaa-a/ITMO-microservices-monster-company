@@ -33,8 +33,7 @@ public class DoorRepository {
     }
 
     public DoorEntity save(DoorEntity doorEntity) {
-        UUID uuid = UUID.randomUUID(); //todo:мб убрать
-        jdbcTemplate.update("insert into door values(?, ?)", uuid, doorEntity.isActive());
+        jdbcTemplate.update("insert into door values(?, ?)", doorEntity.getId(), doorEntity.isActive());
         return doorEntity;
     }
 

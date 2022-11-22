@@ -1,5 +1,6 @@
 package com.example.infectionservice.mapper;
 
+import com.example.infectionservice.dto.InfectedThingDTO;
 import com.example.infectionservice.model.DoorEntity;
 import com.example.infectionservice.model.InfectedThingEntity;
 import org.springframework.jdbc.core.RowMapper;
@@ -19,5 +20,21 @@ public class InfectedThingMapper implements RowMapper<InfectedThingEntity> {
         doorEntity.setActive(resultSet.getBoolean("status"));
         infectedThingEntity.setDoor(doorEntity);
         return infectedThingEntity;
+    }
+
+    public InfectedThingDTO mapEntityToDto(InfectedThingEntity infectedThingEntity) {
+        return InfectedThingDTO.builder()
+                .id(infectedThingEntity.getId())
+                .name(infectedThingEntity.getName())
+                .doorId(infectedThingEntity.getDoor().getId())
+                .build();
+    }
+
+    public InfectedThingEntity mapDtoToEntity(InfectedThingDTO infectedThingDTO, DoorEntity doorEntity) {
+        return InfectedThingEntity.builder()
+                .id(infectedThingDTO.getId())
+                .name(infectedThingDTO.getName())
+                .door(doorEntity)
+                .build();
     }
 }
