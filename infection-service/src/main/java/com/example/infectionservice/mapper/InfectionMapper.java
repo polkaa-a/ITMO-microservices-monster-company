@@ -3,11 +3,15 @@ package com.example.infectionservice.mapper;
 import com.example.infectionservice.dto.InfectionDTO;
 import com.example.infectionservice.model.InfectedThingEntity;
 import com.example.infectionservice.model.InfectionEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+@RequiredArgsConstructor
+@Component
 public class InfectionMapper implements RowMapper<InfectionEntity> {
 
     //todo: хз как это делать потому что нужно создавать кучу объектов

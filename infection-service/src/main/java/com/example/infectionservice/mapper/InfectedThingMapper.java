@@ -3,11 +3,15 @@ package com.example.infectionservice.mapper;
 import com.example.infectionservice.dto.InfectedThingDTO;
 import com.example.infectionservice.model.DoorEntity;
 import com.example.infectionservice.model.InfectedThingEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+@RequiredArgsConstructor
+@Component
 public class InfectedThingMapper implements RowMapper<InfectedThingEntity> {
 
     @Override
