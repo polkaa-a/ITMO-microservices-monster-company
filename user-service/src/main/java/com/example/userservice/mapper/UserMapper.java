@@ -1,9 +1,11 @@
 package com.example.userservice.mapper;
 
+import com.example.userservice.dto.RoleDTO;
 import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.model.User;
 import com.example.userservice.service.ValidatorModel;
+import io.r2dbc.spi.Row;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,18 +25,29 @@ public class UserMapper {
         return UserResponseDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
-                .roleId(user.getRoleId())
-                .roleName(user.getRoleName())
+                .role(RoleDTO.builder()
+                        .id(user.getRoleId())
+                        .name(user.getRoleName())
+                        .build())
                 .build();
     }
 
-    public User toUser(UserRequestDTO userRequestDTO, UUID roleId) {
+    public User dtoToUser(UserRequestDTO userRequestDTO, UUID roleId) {
         return User.builder()
                 .id(UUID.randomUUID())
                 .username(userRequestDTO.getUsername())
                 .password(passwordEncoder.encode(userRequestDTO.getPassword()))
                 .roleId(roleId)
                 .newUser(true)
+                .build();
+    }
+
+    public User rowToUser(Row row) {
+        return User.builder()
+                .id(row.get("id", UUID.class))
+                .username(row.get("username", String.class))
+                .roleId(row.get("role_id", UUID.class))
+                .roleName(row.get("name", String.class))
                 .build();
     }
 

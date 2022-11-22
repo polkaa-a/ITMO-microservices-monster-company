@@ -5,6 +5,7 @@ import com.example.userservice.controller.exception.NotFoundException;
 import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.mapper.UserMapper;
 import com.example.userservice.model.User;
+import com.example.userservice.repository.UserDatabaseClient;
 import com.example.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 import java.util.UUID;
@@ -27,10 +27,10 @@ public class UserService {
     private static final String EXC_MES_ID = "user not found by id ";
     private static final String EXC_EXIST = "user with this username exists ";
     private final UserRepository userRepository;
+    private final UserDatabaseClient userDatabaseClient;
 
     private final RoleService roleService;
     private final UserMapper mapper;
-    private static final int BUFFER_SIZE = 3;
 
     public Mono<User> save(UserRequestDTO userRequestDTO) {
         return userRepository.existsByUsername(userRequestDTO.getUsername())
@@ -39,7 +39,7 @@ public class UserService {
                         return Mono.error(new EntityExistsException(EXC_EXIST));
                     return roleService.findByName(userRequestDTO.getRole());
                 })
-                .flatMap(role -> userRepository.save(mapper.toUser(userRequestDTO, role.getId()))
+                .flatMap(role -> userRepository.save(mapper.dtoToUser(userRequestDTO, role.getId()))
                         .map(saveUser -> {
                                     saveUser.setRoleName(role.getName());
                                     return saveUser;
@@ -49,9 +49,8 @@ public class UserService {
     }
 
     public Mono<User> findByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .switchIfEmpty(Mono.error(() -> new NotFoundException(EXC_MES_USERNAME + username)))
-                .flatMap(this::getUserWithRole);
+        return userDatabaseClient.findByUsername(username)
+                .switchIfEmpty(Mono.error(() -> new NotFoundException(EXC_MES_USERNAME + username)));
     }
 
     public Mono<User> findById(UUID id) {
@@ -61,22 +60,13 @@ public class UserService {
 
     public Mono<Page<User>> findAll(Pageable pageable, String roleName) {
         if (roleName != null) {
-            return roleService.findByName(roleName)
-                    .flatMap(role ->
-                            createPage(
-                                    userRepository.findAllByRoleId(role.getId(), pageable),
-                                    pageable
-                            )
-                    );
+            return createPage(userDatabaseClient.findAllByRole(roleName, pageable), pageable);
         }
-        return createPage(userRepository.findAllBy(pageable), pageable);
+        return createPage(userDatabaseClient.findAll(pageable), pageable);
     }
 
     private Mono<Page<User>> createPage(Flux<User> userFlux, Pageable pageable) {
-        return userFlux.buffer(BUFFER_SIZE)
-                .flatMap(list -> Flux.fromIterable(list)
-                        .flatMap(this::getUserWithRole))
-                .subscribeOn(Schedulers.parallel())
+        return userFlux
                 .collectList()
                 .zipWith(userRepository.count())
                 .map(t -> new PageImpl<>(t.getT1(), pageable, t.getT2()));
