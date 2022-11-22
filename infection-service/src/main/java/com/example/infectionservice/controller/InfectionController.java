@@ -42,11 +42,11 @@ public class InfectionController {
         return test;
     }
 
-//    @PostMapping //todo: добавить
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public InfectionDTO save(@Valid @RequestBody InfectionDTO infectionDTO) {
-//        return infectionMapper.mapEntityToDto(infectionService.save(infectionDTO));
-//    }
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public InfectionDTO save(@Valid @RequestBody InfectionDTO infectionDTO) {
+        return infectionMapper.mapEntityToDto(infectionService.save(infectionDTO));
+    }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)

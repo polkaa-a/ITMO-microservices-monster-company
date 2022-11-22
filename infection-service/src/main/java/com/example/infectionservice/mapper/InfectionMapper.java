@@ -1,8 +1,10 @@
 package com.example.infectionservice.mapper;
 
 import com.example.infectionservice.dto.InfectionDTO;
+import com.example.infectionservice.dto.MonsterDTO;
 import com.example.infectionservice.model.InfectedThingEntity;
 import com.example.infectionservice.model.InfectionEntity;
+import com.example.infectionservice.service.InfectedThingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -40,4 +42,14 @@ public class InfectionMapper implements RowMapper<InfectionEntity> {
 //                .cureDate(infectionDTO.getCureDate())
 //                .build();
 //    }
+
+    public InfectionEntity mapDtoToEntity(InfectionDTO infectionDTO, MonsterDTO monsterDTO, InfectedThingEntity infectedThingEntity) {
+        return InfectionEntity.builder()
+                .id(infectionDTO.getId())
+                .monster(monsterDTO.getId())
+                .infectedThing(infectedThingEntity)
+                .infectionDate(infectionDTO.getInfectionDate())
+                .cureDate(infectionDTO.getCureDate())
+                .build();
+    }
 }

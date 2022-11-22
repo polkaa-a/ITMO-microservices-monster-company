@@ -2,9 +2,12 @@ package com.example.infectionservice.service;
 
 import com.example.infectionservice.controller.exception.NotFoundException;
 import com.example.infectionservice.dto.InfectionDTO;
+import com.example.infectionservice.dto.MonsterDTO;
 import com.example.infectionservice.mapper.InfectionMapper;
+import com.example.infectionservice.model.InfectedThingEntity;
 import com.example.infectionservice.model.InfectionEntity;
 import com.example.infectionservice.repository.InfectionRepository;
+import com.example.infectionservice.service.feigh.clients.MonsterServiceFeighClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +20,20 @@ import java.util.UUID;
 public class InfectionService {
     private final InfectionRepository infectionRepository;
     //private final MonsterService monsterService;
+    private final MonsterServiceFeighClient monsterServiceFeighClient;
+    private final InfectedThingService infectedThingService;
     private final InfectionMapper mapper;
     private static final String EXC_MES_ID = "infection not found by id ";
 
-//    public InfectionEntity save(InfectionDTO infectionDTO) {
+    public InfectionEntity save(InfectionDTO infectionDTO) {
 //        MonsterEntity monsterEntity = monsterService.findById(infectionDTO.getMonsterId());
 //        return infectionRepository.save(mapper.mapDtoToEntity(infectionDTO, monsterEntity));
-//    }
+
+        MonsterDTO monsterDTO = monsterServiceFeighClient.findById(infectionDTO.getMonsterId());
+        InfectedThingEntity infectedThingEntity = infectedThingService.findById(infectionDTO.getInfectedThingId());
+        return infectionRepository.save(mapper.mapDtoToEntity(infectionDTO, monsterDTO, infectedThingEntity));
+
+    }
 
     public InfectionEntity findById(UUID id) {
         return infectionRepository.findById(id).orElseThrow(
