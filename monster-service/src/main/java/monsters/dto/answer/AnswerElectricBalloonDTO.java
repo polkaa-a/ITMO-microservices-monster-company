@@ -2,7 +2,6 @@ package monsters.dto.answer;
 
 import lombok.*;
 import monsters.dto.CityDTO;
-import monsters.model.CityEntity;
 
 import javax.validation.constraints.NotNull;
 import java.util.UUID;
