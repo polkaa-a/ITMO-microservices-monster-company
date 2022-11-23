@@ -17,18 +17,18 @@ public class GatewayRoutingConfig {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder,
                                            RoleAuthGatewayFilterFactory authFactory) {
         return builder.routes()
-                .route("user-service", route -> route.path("/users/**")
+                .route(route -> route.path("/users/**")
                        .filters(f -> f.filter(authFactory.apply(
                                new Config(List.of("ADMIN","SCARER"))
                         )))
-                        .uri("http://localhost:8081"))
-                .route("user-service", route -> route.path("/roles/**")
+                        .uri("lb://user-service"))
+                .route(route -> route.path("/roles/**")
                         .filters(f -> f.filter(authFactory.apply(
                                 new Config(List.of("ADMIN"))
                         )))
-                        .uri("http://localhost:8081"))
-                .route("user-service", route -> route.path("/auth")
-                        .uri("http://localhost:8081"))
+                        .uri("lb://user-service"))
+                .route(route -> route.path("/auth")
+                        .uri("lb://user-service"))
                 .build();
     }
 }
