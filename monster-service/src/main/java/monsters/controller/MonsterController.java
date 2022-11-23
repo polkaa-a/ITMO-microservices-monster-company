@@ -20,7 +20,7 @@ import reactor.util.function.Tuple2;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import java.util.Date;
+import java.sql.Date;
 import java.util.UUID;
 
 @RestController
@@ -84,7 +84,8 @@ public class MonsterController {
                                                                                 @RequestParam(defaultValue = "5")
                                                                                 @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        return getMonoResponseEntity(monsterService.findAllByDateOfFearAction(date, page, size));
+        return getMonoResponseEntity(monsterService.findAllByDateOfFearAction(date, page, size))
+                .doOnError(Throwable::printStackTrace);
     }
 
     @GetMapping("/infection/{date}")
@@ -121,6 +122,6 @@ public class MonsterController {
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<AnswerMonsterDTO>>(HttpStatus.NO_CONTENT));
         var responseMono = Mono.just(new ResponseEntity<>(monsterDTOFlux, HttpStatus.OK));
 
-        return monsterDTOFlux.hasElements().flatMap(hasElements -> hasElements ? responseMono : emptyResponseMono);
+        return monsterEntityFlux.hasElements().flatMap(hasElements -> hasElements ? responseMono : emptyResponseMono);
     }
 }

@@ -42,7 +42,7 @@ public class ElectricBalloonController {
                 .flatMap(electricBalloonEntity -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity)));
     }
 
-    @GetMapping("/{date}")
+    @GetMapping("/date/{date}")
     public Mono<ResponseEntity<Flux<AnswerElectricBalloonDTO>>> findAllFilledByDateAndCity(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date,
                                                                                            @RequestParam(required = false) UUID cityId,
                                                                                            @RequestParam(defaultValue = "0")
