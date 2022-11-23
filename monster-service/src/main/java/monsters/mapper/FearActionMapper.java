@@ -7,11 +7,11 @@ import monsters.model.FearActionEntity;
 import monsters.model.MonsterEntity;
 import org.springframework.stereotype.Component;
 
-@Component
 @RequiredArgsConstructor
+@Component
 public class FearActionMapper {
 
-    private MonsterMapper monsterMapper;
+    private final MonsterMapper monsterMapper;
 
     public AnswerFearActionDTO mapEntityToDto(FearActionEntity fearActionEntity) {
         return AnswerFearActionDTO.builder()

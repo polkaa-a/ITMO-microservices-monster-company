@@ -35,10 +35,11 @@ public class ElectricBalloonService {
     public Mono<ElectricBalloonEntity> save(Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
         return electricBalloonDTOMono
                 .flatMap(electricBalloonDTO ->
-                        Mono.zip(electricBalloonDTOMono, fearActionService.findById(electricBalloonDTO.getFearActionId()), cityService.findById(electricBalloonDTO.getCityId())))
+                        Mono.zip(Mono.just(electricBalloonDTO), fearActionService.findById(electricBalloonDTO.getFearActionId()), cityService.findById(electricBalloonDTO.getCityId())))
                 .flatMap(tuple -> Mono.just(electricBalloonMapper.mapDtoToEntity(tuple.getT1(), tuple.getT2(), tuple.getT3())))
                 .flatMap(electricBalloonEntity -> Mono.fromCallable(() -> electricBalloonRepository.save(electricBalloonEntity))
-                        .subscribeOn(Schedulers.boundedElastic()));
+                        .subscribeOn(Schedulers.boundedElastic()))
+                .doOnError(Throwable::printStackTrace);
     }
 
     public Mono<ElectricBalloonEntity> findById(UUID electricBalloonId) {

@@ -16,7 +16,7 @@ import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 
 import javax.persistence.EntityExistsException;
-import java.util.Date;
+import java.sql.Date;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -59,7 +59,8 @@ public class MonsterService {
     public Flux<MonsterEntity> findAllByDateOfFearAction(Date date, int page, int size) {
         return fearActionService.findAllByDate(date, page, size)
                 .flatMap(fearActionEntity -> Mono.just(fearActionEntity.getMonsterEntity()))
-                .distinct();
+                .distinct()
+                .doOnError(Throwable::printStackTrace);
     }
 
     public Flux<MonsterEntity> findAll(int page, int size) {

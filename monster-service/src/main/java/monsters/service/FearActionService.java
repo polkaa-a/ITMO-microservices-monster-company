@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.Date;
+import java.sql.Date;
 import java.util.UUID;
 
 @Service
@@ -31,7 +31,7 @@ public class FearActionService {
 
     public Mono<FearActionEntity> save(Mono<RequestFearActionDTO> fearActionDTOMono) {
         return fearActionDTOMono
-                .flatMap(fearActionDTO -> Mono.zip(fearActionDTOMono, monsterService.findById(fearActionDTO.getMonsterId())))
+                .flatMap(fearActionDTO -> Mono.zip(Mono.just(fearActionDTO), monsterService.findById(fearActionDTO.getMonsterId())))
                 .flatMap(tuple -> Mono.just(fearActionMapper.mapDtoToEntity(tuple.getT1(), tuple.getT2())))
                 .flatMap(fearActionEntity ->
                         Mono.fromCallable(() -> fearActionRepository.save(fearActionEntity))
@@ -78,6 +78,7 @@ public class FearActionService {
         return Mono.fromCallable(() -> fearActionRepository.findAllByDate(date, PageRequest.of(page, size)).stream())
                 .subscribeOn(Schedulers.boundedElastic())
                 .flux()
-                .flatMap(Flux::fromStream);
+                .flatMap(Flux::fromStream)
+                .doOnError(Throwable::printStackTrace);
     }
 }
