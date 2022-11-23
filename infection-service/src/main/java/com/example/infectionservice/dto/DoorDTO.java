@@ -10,7 +10,6 @@ import java.util.UUID;
 @Setter
 @Builder
 public class DoorDTO {
-
     private UUID id;
     private Boolean isActive;
 }

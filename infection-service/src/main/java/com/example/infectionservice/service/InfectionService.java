@@ -46,7 +46,8 @@ public class InfectionService {
                 () -> new NotFoundException(EXC_MES_ID + id)
         );
         infectionEntity.setCureDate(cureDate.get("cureDate"));
-        return infectionRepository.save(infectionEntity);
+        infectionRepository.update(infectionEntity);
+        return infectionEntity;
     }
 
     //TODO: Pageable

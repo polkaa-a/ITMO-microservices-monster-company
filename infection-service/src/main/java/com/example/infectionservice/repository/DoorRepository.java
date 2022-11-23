@@ -22,19 +22,20 @@ public class DoorRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-//    public DoorEntity findById(UUID id) {
-//        return jdbcTemplate.query("select * from door where id = ?", new Object[]{id}, new DoorMapper())
-//                .stream().findAny().orElse(null);
-//    }
-
     public Optional<DoorEntity> findById(UUID id) {
         return jdbcTemplate.query("select * from door where id = ?", new Object[]{id}, new DoorMapper())
                 .stream().findAny();
     }
 
     public DoorEntity save(DoorEntity doorEntity) {
+        doorEntity.setId(UUID.randomUUID());
         jdbcTemplate.update("insert into door values(?, ?)", doorEntity.getId(), doorEntity.isActive());
         return doorEntity;
+    }
+
+    public void update(DoorEntity doorEntity) {
+        jdbcTemplate.update("update door set status = ? where id = ?", doorEntity.isActive(),
+                                                                            doorEntity.getId());
     }
 
     public List<DoorEntity> findAllByActive() {

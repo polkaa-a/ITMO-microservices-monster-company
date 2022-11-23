@@ -5,6 +5,7 @@ import com.example.infectionservice.mapper.InfectionMapper;
 import com.example.infectionservice.model.ChildEntity;
 import com.example.infectionservice.repository.ChildRepository;
 import com.example.infectionservice.service.InfectionService;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,25 +23,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/infections")
 public class InfectionController {
-    private final ChildRepository childRepository; //TODO: убрать - добавила для тестирвоания
     private final InfectionService infectionService;
     //private final PageMapper<InfectionDTO> pageMapper;
     private final InfectionMapper infectionMapper;
-
-    @GetMapping("/greeting")
-    public String greeting() {
-        return "hello infection";
-    }
-
-    @GetMapping("/test")
-    public String test() {
-        List<ChildEntity> childEntitiesList = childRepository.getChildren();
-        String test = "";
-        for (ChildEntity child: childEntitiesList) {
-            test+= child.getName() + "\n";
-        }
-        return test;
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -71,6 +56,7 @@ public class InfectionController {
 //    }
 
     @PatchMapping("/{id}")
+    @JsonFormat(pattern="yyyy-MM-dd")
     @ResponseStatus(HttpStatus.OK)
     public InfectionDTO updateCureDate(@RequestBody Map<String, Date> cureDate, @PathVariable UUID id) {
         return infectionMapper.mapEntityToDto(infectionService.updateCureDate(id, cureDate));

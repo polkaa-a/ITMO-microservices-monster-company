@@ -22,7 +22,12 @@ public class InfectedThingService {
     private static final String EXC_MES_ID = "none infected thing was found by id ";
 
     public InfectedThingEntity save(InfectedThingDTO infectedThingDTO) {
-        DoorEntity doorEntity = doorService.findById(infectedThingDTO.getDoorId());
+        DoorEntity doorEntity;
+        try {
+            doorEntity = doorService.findById(infectedThingDTO.getDoorId());
+        } catch (NotFoundException exception) {
+            doorEntity = doorService.save(new DoorEntity());
+        }
         return infectedThingRepository.save(mapper.mapDtoToEntity(infectedThingDTO, doorEntity));
     }
 

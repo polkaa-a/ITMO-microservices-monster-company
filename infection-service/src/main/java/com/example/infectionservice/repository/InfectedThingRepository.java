@@ -1,6 +1,7 @@
 package com.example.infectionservice.repository;
 
 import com.example.infectionservice.mapper.ChildMapper;
+import com.example.infectionservice.mapper.DoorMapper;
 import com.example.infectionservice.mapper.InfectedThingMapper;
 import com.example.infectionservice.model.ChildEntity;
 import com.example.infectionservice.model.DoorEntity;
@@ -22,11 +23,8 @@ public class InfectedThingRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-//    public List<InfectedThingEntity> getInfectedThings() {
-//        return jdbcTemplate.query("select * from child join door on child.door_id = door.id", new InfectedThingMapper());
-//    }
-
     public InfectedThingEntity save(InfectedThingEntity infectedThingEntity) {
+        infectedThingEntity.setId(UUID.randomUUID());
         jdbcTemplate.update("insert into infected_thing values(?, ?, ?)", infectedThingEntity.getId(),
                                                                     infectedThingEntity.getName(),
                                                                     infectedThingEntity.getDoor().getId());
@@ -34,7 +32,7 @@ public class InfectedThingRepository {
     }
 
     public Optional<InfectedThingEntity> findById(UUID id) {
-        return jdbcTemplate.query("select * from infected_thing where id = ?", new Object[]{id}, new InfectedThingMapper())
+        return jdbcTemplate.query("select * from infected_thing join door on infected_thing.door_id = door.id where infected_thing.id = ?", new Object[]{id}, new InfectedThingMapper())
                 .stream().findAny();
     }
 

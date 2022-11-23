@@ -17,6 +17,12 @@ public class GatewayRoutingConfig {
                         .uri("http://localhost:8081"))
                 .route("infection-service", route -> route.path("/infections/**")
                         .uri("http://localhost:8083"))
+                .route("infection-service", route -> route.path("/infected-things/**")
+                        .uri("http://localhost:8083"))
+                .route("infection-service", route -> route.path("/doors/**")
+                        .uri("http://localhost:8083"))
+                .route("infection-service", route -> route.path("/child/**")
+                        .uri("http://localhost:8083"))
                 .build();
     }
 }

@@ -36,7 +36,7 @@ public class DoorService {
                 () -> new NotFoundException(EXC_MES_ID + " " + id)
         );
         doorEntity.setActive(!doorEntity.isActive());
-        doorRepository.save(doorEntity);
+        doorRepository.update(doorEntity);
         return doorEntity;
     }
 

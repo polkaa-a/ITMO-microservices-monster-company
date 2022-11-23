@@ -34,6 +34,7 @@ public class ChildRepository {
     }
 
     public ChildEntity save(ChildEntity childEntity) {
+        childEntity.setId(UUID.randomUUID());
         jdbcTemplate.update("insert into child values(?, ?, ?, ?, ?)", childEntity.getId(),
                                                                             childEntity.getName(),
                                                                             childEntity.getGender(),

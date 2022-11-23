@@ -25,11 +25,10 @@ public class ChildService {
     @Transactional
     public ChildEntity save(ChildDTO childDTO) {
         DoorEntity doorEntity;
-        UUID doorId = childDTO.getDoorId();
-        if (doorId == null) {
+        try {
+            doorEntity = doorService.findById(childDTO.getDoorId());
+        } catch (NotFoundException exception) {
             doorEntity = doorService.save(new DoorEntity());
-        } else {
-            doorEntity = doorService.findById(doorId);
         }
         ChildEntity childEntity = childMapper.mapDtoToEntity(childDTO, doorEntity);
         return childRepository.save(childEntity);
