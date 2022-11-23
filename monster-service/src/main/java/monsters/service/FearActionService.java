@@ -1,13 +1,10 @@
 package monsters.service;
 
-import lombok.RequiredArgsConstructor;
 import monsters.controller.exception.NotFoundException;
 import monsters.dto.request.RequestFearActionDTO;
 import monsters.mapper.FearActionMapper;
 import monsters.model.FearActionEntity;
-import monsters.model.MonsterEntity;
 import monsters.repository.FearActionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -26,45 +23,46 @@ public class FearActionService {
     private final FearActionMapper fearActionMapper;
     private final MonsterService monsterService;
 
-    public FearActionService(@Lazy MonsterService monsterService, FearActionRepository fearActionRepository, FearActionMapper fearActionMapper){
+    public FearActionService(@Lazy MonsterService monsterService, FearActionRepository fearActionRepository, FearActionMapper fearActionMapper) {
         this.fearActionRepository = fearActionRepository;
         this.monsterService = monsterService;
         this.fearActionMapper = fearActionMapper;
     }
 
-    private Mono<MonsterEntity> getMonsterEntityMono(Mono<RequestFearActionDTO> fearActionDTOMono) {
-        return fearActionDTOMono.flatMap(fearActionDTO -> monsterService.findById(fearActionDTO.getMonsterId()));
-    }
-
     public Mono<FearActionEntity> save(Mono<RequestFearActionDTO> fearActionDTOMono) {
-        return fearActionMapper.mapDtoToEntity(fearActionDTOMono, getMonsterEntityMono(fearActionDTOMono))
-                .flatMap(electricBalloonEntity ->
-                        Mono.fromCallable(() -> fearActionRepository.save(electricBalloonEntity))
+        return fearActionDTOMono
+                .flatMap(fearActionDTO -> Mono.zip(fearActionDTOMono, monsterService.findById(fearActionDTO.getMonsterId())))
+                .flatMap(tuple -> Mono.just(fearActionMapper.mapDtoToEntity(tuple.getT1(), tuple.getT2())))
+                .flatMap(fearActionEntity ->
+                        Mono.fromCallable(() -> fearActionRepository.save(fearActionEntity))
                                 .subscribeOn(Schedulers.boundedElastic()));
     }
 
     public Mono<FearActionEntity> findById(UUID fearActionId) {
-        var actionEntityFlux = Mono.fromCallable(() ->
-                        fearActionRepository.findById(fearActionId).stream())
+        return Mono.fromCallable(() -> fearActionRepository.findById(fearActionId).stream())
+                .subscribeOn(Schedulers.boundedElastic())
                 .flux()
                 .flatMap(Flux::fromStream)
-                .subscribeOn(Schedulers.boundedElastic());
-
-        return actionEntityFlux
                 .singleOrEmpty()
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + fearActionId)));
     }
 
     public Mono<FearActionEntity> updateById(UUID fearActionId, Mono<RequestFearActionDTO> fearActionDTOMono) {
-        return Mono.fromCallable(() -> fearActionRepository.findById(fearActionId))
-                .subscribeOn(Schedulers.boundedElastic())
-                .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + fearActionId)))
-                .then(fearActionMapper.mapDtoToEntity(fearActionDTOMono, getMonsterEntityMono(fearActionDTOMono))
-                        .flatMap(fearActionEntity -> {
-                            fearActionEntity.setId(fearActionId);
-                            return Mono.fromCallable(() -> fearActionRepository.save(fearActionEntity))
-                                    .subscribeOn(Schedulers.boundedElastic());
-                        }));
+        return fearActionDTOMono
+                .flatMap(fearActionDTO ->
+                        Mono.zip(fearActionDTOMono, monsterService.findById(fearActionDTO.getMonsterId())))
+                .flatMap(tuple -> Mono.just(fearActionMapper.mapDtoToEntity(tuple.getT1(), tuple.getT2())))
+                .flatMap(fearActionEntity -> {
+                    fearActionEntity.setId(fearActionId);
+                    return Mono.fromCallable(() -> fearActionRepository.findById(fearActionEntity.getId()).stream())
+                            .subscribeOn(Schedulers.boundedElastic())
+                            .flux()
+                            .flatMap(Flux::fromStream)
+                            .singleOrEmpty()
+                            .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + fearActionId)))
+                            .then(Mono.fromCallable(() -> fearActionRepository.save(fearActionEntity))
+                                    .subscribeOn(Schedulers.boundedElastic()));
+                });
     }
 
     public Mono<Void> delete(UUID fearActionId) {
@@ -77,10 +75,9 @@ public class FearActionService {
     }
 
     public Flux<FearActionEntity> findAllByDate(Date date, int page, int size) {
-        return Mono.fromCallable(() ->
-                        fearActionRepository.findAllByDate(date, PageRequest.of(page, size)).stream())
+        return Mono.fromCallable(() -> fearActionRepository.findAllByDate(date, PageRequest.of(page, size)).stream())
+                .subscribeOn(Schedulers.boundedElastic())
                 .flux()
-                .flatMap(Flux::fromStream)
-                .subscribeOn(Schedulers.boundedElastic());
+                .flatMap(Flux::fromStream);
     }
 }

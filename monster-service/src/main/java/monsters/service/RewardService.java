@@ -25,43 +25,41 @@ public class RewardService {
     private final RewardRepository rewardRepository;
 
     public Mono<RewardEntity> save(Mono<RewardDTO> rewardDTOMono) {
-
-        Mono<RewardEntity> errorMono = rewardDTOMono
-                .flatMap(rewardDTO -> Mono.error(new EntityExistsException(EXC_EXIST + ": " + rewardDTO.getMoney())));
-
-        var savedEntityMono = rewardMapper.mapDtoToEntity(rewardDTOMono)
-                .flatMap(rewardEntity -> Mono.fromCallable(() -> rewardRepository.save(rewardEntity))
-                        .subscribeOn(Schedulers.boundedElastic()));
-
         return rewardDTOMono.flatMap(rewardDTO ->
                 Mono.fromCallable(() -> rewardRepository.findByMoney(rewardDTO.getMoney()).stream())
                         .subscribeOn(Schedulers.boundedElastic())
                         .flux()
                         .flatMap(Flux::fromStream)
-                        .hasElements().flatMap(hasElements -> hasElements ? errorMono : savedEntityMono));
+                        .hasElements()
+                        .flatMap(hasElements -> hasElements ?
+                                Mono.error(new EntityExistsException(EXC_EXIST + ": " + rewardDTO.getMoney())) :
+                                Mono.just(rewardMapper.mapDtoToEntity(rewardDTO))
+                                        .flatMap(rewardEntity -> Mono.fromCallable(() -> rewardRepository.save(rewardEntity))
+                                                .subscribeOn(Schedulers.boundedElastic()))));
     }
 
     public Mono<RewardEntity> findById(UUID rewardId) {
-        var rewardEntityFlux = Mono.fromCallable(() ->
-                        rewardRepository.findById(rewardId).stream())
+        return Mono.fromCallable(() -> rewardRepository.findById(rewardId).stream())
+                .subscribeOn(Schedulers.boundedElastic())
                 .flux()
                 .flatMap(Flux::fromStream)
-                .subscribeOn(Schedulers.boundedElastic());
-
-        return rewardEntityFlux
                 .singleOrEmpty()
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + rewardId)));
     }
 
     public Mono<RewardEntity> updateById(UUID rewardId, Mono<RewardDTO> rewardDTOMono) {
-        return Mono.fromCallable(() -> rewardRepository.findById(rewardId))
+        return Mono.fromCallable(() -> rewardRepository.findById(rewardId).stream())
                 .subscribeOn(Schedulers.boundedElastic())
+                .flux()
+                .flatMap(Flux::fromStream)
+                .singleOrEmpty()
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + rewardId)))
-                .then(rewardMapper.mapDtoToEntity(rewardDTOMono).flatMap(rewardEntity -> {
-                    rewardEntity.setId(rewardId);
-                    return Mono.fromCallable(() -> rewardRepository.save(rewardEntity))
-                            .subscribeOn(Schedulers.boundedElastic());
-                }));
+                .then(rewardDTOMono.flatMap(rewardDTO -> Mono.just(rewardMapper.mapDtoToEntity(rewardDTO)))
+                        .flatMap(rewardEntity -> {
+                            rewardEntity.setId(rewardId);
+                            return Mono.fromCallable(() -> rewardRepository.save(rewardEntity))
+                                    .subscribeOn(Schedulers.boundedElastic());
+                        }));
     }
 
     public Mono<Void> delete(UUID rewardId) {

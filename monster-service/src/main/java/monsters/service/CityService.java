@@ -26,44 +26,51 @@ public class CityService {
     private final CityMapper cityMapper;
 
     public Mono<CityEntity> save(Mono<CityDTO> cityDTOMono) {
-        Mono<CityEntity> errorMono = cityDTOMono
-                .flatMap(cityDTO -> Mono.error(new EntityExistsException(EXC_EXIST + ": " + cityDTO.getName())));
-
-        var savedEntityMono = cityMapper.mapDtoToEntity(cityDTOMono)
-                .flatMap(cityEntity -> Mono.fromCallable(() -> cityRepository.save(cityEntity))
-                        .subscribeOn(Schedulers.boundedElastic()));
-
         return cityDTOMono.flatMap(cityDTO ->
                 Mono.fromCallable(() -> cityRepository.findByName(cityDTO.getName()).stream())
                         .subscribeOn(Schedulers.boundedElastic())
                         .flux()
                         .flatMap(Flux::fromStream)
-                        .hasElements().flatMap(hasElements -> hasElements ? errorMono : savedEntityMono));
+                        .hasElements()
+                        .flatMap(hasElements -> hasElements ?
+                                Mono.error(new EntityExistsException(EXC_EXIST + ": " + cityDTO.getName())) :
+                                Mono.just(cityMapper.mapDtoToEntity(cityDTO))
+                                        .flatMap(cityEntity -> Mono.fromCallable(() -> cityRepository.save(cityEntity))
+                                                .subscribeOn(Schedulers.boundedElastic()))));
 
     }
 
-    public Mono<CityEntity> findByName(String cityName) {
-
-        var cityEntityFlux = Mono.fromCallable(() ->
-                        cityRepository.findByName(cityName).stream())
+    public Mono<CityEntity> findById(UUID cityId) {
+        return Mono.fromCallable(() -> cityRepository.findById(cityId).stream())
+                .subscribeOn(Schedulers.boundedElastic())
                 .flux()
                 .flatMap(Flux::fromStream)
-                .subscribeOn(Schedulers.boundedElastic());
+                .singleOrEmpty()
+                .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + cityId)));
+    }
 
-        return cityEntityFlux
+    public Mono<CityEntity> findByName(String cityName) {
+        return Mono.fromCallable(() -> cityRepository.findByName(cityName).stream())
+                .subscribeOn(Schedulers.boundedElastic())
+                .flux()
+                .flatMap(Flux::fromStream)
                 .singleOrEmpty()
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_NAME + ": " + cityName)));
     }
 
     public Mono<CityEntity> updateById(UUID cityId, Mono<CityDTO> cityDTOMono) {
-        return Mono.fromCallable(() -> cityRepository.findById(cityId))
+        return Mono.fromCallable(() -> cityRepository.findById(cityId).stream())
                 .subscribeOn(Schedulers.boundedElastic())
+                .flux()
+                .flatMap(Flux::fromStream)
+                .singleOrEmpty()
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + cityId)))
-                .then(cityMapper.mapDtoToEntity(cityDTOMono).flatMap(cityEntity -> {
-                    cityEntity.setId(cityId);
-                    return Mono.fromCallable(() -> cityRepository.save(cityEntity))
-                            .subscribeOn(Schedulers.boundedElastic());
-                }));
+                .then(cityDTOMono.flatMap(cityDTO -> Mono.just(cityMapper.mapDtoToEntity(cityDTO)))
+                        .flatMap(cityEntity -> {
+                            cityEntity.setId(cityId);
+                            return Mono.fromCallable(() -> cityRepository.save(cityEntity))
+                                    .subscribeOn(Schedulers.boundedElastic());
+                        }));
     }
 
     public Flux<CityEntity> findAll(int page, int size) {

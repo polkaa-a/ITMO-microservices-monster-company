@@ -36,84 +36,67 @@ public class MonsterService {
     private final InfectionServiceFeignClient infectionServiceFeignClient;
 
     public Mono<MonsterEntity> save(Mono<RequestMonsterDTO> monsterDTOMono) {
-        var savedEntityMono = monsterMapper.mapDtoToEntity(monsterDTOMono)
-                .flatMap(monsterEntity -> Mono.fromCallable(() -> monsterRepository.save(monsterEntity))
-                        .subscribeOn(Schedulers.boundedElastic()));
-
-        Mono<MonsterEntity> emailErrorMono = monsterDTOMono
-                .flatMap(monsterDTO -> Mono.error(new EntityExistsException(EXC_EXIST_EMAIL + ": " + monsterDTO.getEmail())));
-
-        Mono<MonsterEntity> idErrorMono = monsterDTOMono
-                .flatMap(monsterDTO -> Mono.error(new EntityExistsException(EXC_EXIST_USER + ": " + monsterDTO.getUserId())));
-
-        Mono<MonsterEntity> monsterEntityIdMono = monsterDTOMono
-                .flatMap(monsterDTO ->
-                        Mono.from(Mono.fromCallable(() -> monsterRepository.findByUserId(monsterDTO.getUserId()).stream())
-                                .subscribeOn(Schedulers.boundedElastic())
-                                .flux()
-                                .flatMap(Flux::fromStream))
-
-                ).hasElement()
-                .flatMap(hasElements -> hasElements ? idErrorMono : savedEntityMono);
-
-
-        return monsterDTOMono
-                .flatMap(monsterDTO ->
-                        Mono.from(Mono.fromCallable(() -> monsterRepository.findByEmail(monsterDTO.getEmail()).stream())
-                                .subscribeOn(Schedulers.boundedElastic())
-                                .flux()
-                                .flatMap(Flux::fromStream))
-                ).hasElement()
-                .flatMap(hasElements -> hasElements ? emailErrorMono : monsterEntityIdMono);
+        return monsterDTOMono.flatMap(monsterDTO ->
+                Mono.fromCallable(() -> monsterRepository.findByEmail(monsterDTO.getEmail()).stream())
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .flux()
+                        .flatMap(Flux::fromStream)
+                        .hasElements()
+                        .flatMap(hasElements -> hasElements ?
+                                Mono.error(new EntityExistsException(EXC_EXIST_EMAIL + ": " + monsterDTO.getEmail())) :
+                                Mono.fromCallable(() -> monsterRepository.findByUserId(monsterDTO.getUserId()).stream())
+                                        .subscribeOn(Schedulers.boundedElastic()))
+                        .flux()
+                        .flatMap(Flux::fromStream)
+                        .hasElements()
+                        .flatMap(hasElements -> hasElements ?
+                                Mono.error(new EntityExistsException(EXC_EXIST_USER + ": " + monsterDTO.getUserId())) :
+                                Mono.just(monsterMapper.mapDtoToEntity(monsterDTO))
+                                        .flatMap(monsterEntity -> Mono.fromCallable(() -> monsterRepository.save(monsterEntity))
+                                                .subscribeOn(Schedulers.boundedElastic()))));
     }
 
     public Flux<MonsterEntity> findAllByDateOfFearAction(Date date, int page, int size) {
-        var fearActionsEntityFlux = fearActionService.findAllByDate(date, page, size);
-
-        return fearActionsEntityFlux
+        return fearActionService.findAllByDate(date, page, size)
                 .flatMap(fearActionEntity -> Mono.just(fearActionEntity.getMonsterEntity()))
                 .distinct();
     }
 
     public Flux<MonsterEntity> findAll(int page, int size) {
         return Mono.fromCallable(() -> monsterRepository.findAll(PageRequest.of(page, size)).stream())
+                .subscribeOn(Schedulers.boundedElastic())
                 .flux()
-                .flatMap(Flux::fromStream)
-                .subscribeOn(Schedulers.boundedElastic());
+                .flatMap(Flux::fromStream);
     }
 
     public Mono<MonsterEntity> findById(UUID monsterId) {
-        var monstersMonoStream = Mono.fromCallable(() ->
-                monsterRepository.findById(monsterId).stream()).subscribeOn(Schedulers.boundedElastic());
-
-        return Mono.from(monstersMonoStream.flux().flatMap(Flux::fromStream)
-                .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + monsterId))));
+        return Mono.fromCallable(() -> monsterRepository.findById(monsterId).stream())
+                .subscribeOn(Schedulers.boundedElastic())
+                .flux()
+                .flatMap(Flux::fromStream)
+                .singleOrEmpty()
+                .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + monsterId)));
     }
 
     public Mono<MonsterEntity> updateJobById(Job job, UUID monsterId) {
-        var monstersMonoStream = Mono.fromCallable(() -> monsterRepository.findById(monsterId).stream())
-                .subscribeOn(Schedulers.boundedElastic());
-
-        Flux<MonsterEntity> idErrorMono = Flux.error(new NotFoundException(EXC_MES_ID + ": " + monsterId));
-
-        return Mono.from(monstersMonoStream
+        return Mono.fromCallable(() -> monsterRepository.findById(monsterId).stream())
+                .subscribeOn(Schedulers.boundedElastic())
                 .flux()
                 .flatMap(Flux::fromStream)
-                .switchIfEmpty(idErrorMono)
+                .singleOrEmpty()
+                .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + monsterId)))
                 .flatMap(monsterEntity -> {
                     monsterEntity.setJob(job);
                     return Mono.fromCallable(() -> monsterRepository.save(monsterEntity))
-                            .flux()
                             .subscribeOn(Schedulers.boundedElastic());
-                }));
+                });
     }
 
     public Flux<Tuple2<MonsterEntity, Long>> getRating(int page, int size) {
         Flux<Tuple2<MonsterEntity, Long>> ratingFlux = Flux.empty();
-        var monstersMonoStream = Mono.fromCallable(() -> monsterRepository.findAll(PageRequest.of(page, size)).stream())
-                .subscribeOn(Schedulers.boundedElastic());
 
-        return monstersMonoStream
+        return Mono.fromCallable(() -> monsterRepository.findAll(PageRequest.of(page, size)).stream())
+                .subscribeOn(Schedulers.boundedElastic())
                 .flux()
                 .flatMap(Flux::fromStream)
                 .buffer(BUFFER_SIZE)
@@ -127,22 +110,17 @@ public class MonsterService {
     }
 
     public Flux<MonsterEntity> findAllByJob(Job job, int page, int size) {
-        return Mono.fromCallable(() ->
-                        monsterRepository.findAllByJob(job, PageRequest.of(page, size)).stream())
-                .flux()
-                .flatMap(Flux::fromStream)
-                .subscribeOn(Schedulers.boundedElastic());
-    }
-
-    public Flux<MonsterEntity> findAllByInfectionDate(Date date) {
-
-        var infectionsDtoFlux = Mono.fromCallable(() ->
-                        infectionServiceFeignClient.findAllByDate(date).stream())
+        return Mono.fromCallable(() -> monsterRepository.findAllByJob(job, PageRequest.of(page, size)).stream())
                 .subscribeOn(Schedulers.boundedElastic())
                 .flux()
                 .flatMap(Flux::fromStream);
+    }
 
-        return infectionsDtoFlux
+    public Flux<MonsterEntity> findAllByInfectionDate(Date date) {
+        return Mono.fromCallable(() -> infectionServiceFeignClient.findAllByDate(date).stream())
+                .subscribeOn(Schedulers.boundedElastic())
+                .flux()
+                .flatMap(Flux::fromStream)
                 .flatMap(infectionDTO -> Mono.fromCallable(() ->
                                 monsterRepository.findById(infectionDTO.getMonsterId()).stream())
                         .subscribeOn(Schedulers.boundedElastic())
@@ -152,14 +130,18 @@ public class MonsterService {
     }
 
     public Mono<MonsterEntity> updateById(UUID monsterId, Mono<RequestMonsterDTO> monsterDTOMono) {
-        return Mono.fromCallable(() -> monsterRepository.findById(monsterId))
+        return Mono.fromCallable(() -> monsterRepository.findById(monsterId).stream())
                 .subscribeOn(Schedulers.boundedElastic())
+                .flux()
+                .flatMap(Flux::fromStream)
+                .singleOrEmpty()
                 .switchIfEmpty(Mono.error(new NotFoundException(EXC_MES_ID + ": " + monsterId)))
-                .then(monsterMapper.mapDtoToEntity(monsterDTOMono).flatMap(monsterEntity -> {
-                    monsterEntity.setId(monsterId);
-                    return Mono.fromCallable(() -> monsterRepository.save(monsterEntity))
-                            .subscribeOn(Schedulers.boundedElastic());
-                }));
+                .then(monsterDTOMono.flatMap(monsterDTO -> Mono.just(monsterMapper.mapDtoToEntity(monsterDTO)))
+                        .flatMap(monsterEntity -> {
+                            monsterEntity.setId(monsterId);
+                            return Mono.fromCallable(() -> monsterRepository.save(monsterEntity))
+                                    .subscribeOn(Schedulers.boundedElastic());
+                        }));
     }
 
     public Mono<Void> delete(UUID monsterId) {
