@@ -21,7 +21,7 @@ public class ElectricBalloonEntity {
     @Column(name = "id")
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "fear_action_id")
     @ToString.Exclude
     private FearActionEntity fearActionEntity;

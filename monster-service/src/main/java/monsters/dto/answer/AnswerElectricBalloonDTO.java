@@ -1,7 +1,7 @@
 package monsters.dto.answer;
 
 import lombok.*;
-import monsters.model.CityEntity;
+import monsters.dto.CityDTO;
 
 import javax.validation.constraints.NotNull;
 import java.util.UUID;
@@ -19,5 +19,5 @@ public class AnswerElectricBalloonDTO {
     private AnswerFearActionDTO fearAction;
 
     @NotNull(message = "shouldn't be null")
-    private CityEntity city;
+    private CityDTO city;
 }

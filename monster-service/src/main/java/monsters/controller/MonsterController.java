@@ -7,7 +7,6 @@ import monsters.dto.request.RequestMonsterDTO;
 import monsters.enums.Job;
 import monsters.mapper.MonsterMapper;
 import monsters.model.MonsterEntity;
-import monsters.model.RewardEntity;
 import monsters.service.MonsterService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -21,7 +20,7 @@ import reactor.util.function.Tuple2;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import java.util.Date;
+import java.sql.Date;
 import java.util.UUID;
 
 @RestController
@@ -35,15 +34,13 @@ public class MonsterController {
 
     @GetMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.OK)
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
     public Mono<AnswerMonsterDTO> getMonster(@PathVariable UUID monsterId) {
-        Mono<MonsterEntity> monsterEntityMono = monsterService.findById(monsterId);
-        return monsterMapper.mapEntityToDto(monsterEntityMono, getRewardsEntityFlux(monsterEntityMono));
+        return monsterService.findById(monsterId)
+                .flatMap(monsterEntity -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity)));
     }
 
     @GetMapping("/rating")
     @ResponseStatus(HttpStatus.OK)
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER')")
     public Flux<MonsterRatingDTO> getRating(@RequestParam(defaultValue = "0")
                                             @Min(value = 0, message = "must not be less than zero") int page,
                                             @RequestParam(defaultValue = "5")
@@ -51,98 +48,80 @@ public class MonsterController {
         Flux<MonsterRatingDTO> ratingDTO = Flux.empty();
         Flux<Tuple2<MonsterEntity, Long>> rating = monsterService.getRating(page, size);
 
-        return rating.flatMap(tuple -> ratingDTO.mergeWith(monsterMapper.mapEntityToRatingDTO(Mono.just(tuple.getT1()), tuple.getT2())));
+        return rating.flatMap(tuple -> ratingDTO.mergeWith(Mono.just(monsterMapper.mapEntityToRatingDTO(tuple.getT1(), tuple.getT2()))));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('RECRUITER')")
-    public Mono<AnswerMonsterDTO> addMonster(@RequestBody Mono<@Valid RequestMonsterDTO> monsterDTOMono) {
-        Mono<MonsterEntity> monsterEntityMono = monsterService.save(monsterDTOMono);
-        return monsterMapper.mapEntityToDto(monsterEntityMono, getRewardsEntityFlux(monsterEntityMono));
+    public Mono<AnswerMonsterDTO> addMonster(@RequestBody @Valid Mono<RequestMonsterDTO> monsterDTOMono) {
+        return monsterService.save(monsterDTOMono)
+                .flatMap(monsterEntity -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity)));
     }
 
     @GetMapping
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
     public Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> findAll(@RequestParam(defaultValue = "0")
                                                                 @Min(value = 0, message = "must not be less than zero") int page,
                                                                 @RequestParam(defaultValue = "5")
                                                                 @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var monsterEntityFlux = monsterService.findAll(page, size);
-        return getMonoResponseEntity(monsterEntityFlux);
+        return getMonoResponseEntity(monsterService.findAll(page, size));
     }
 
     @GetMapping("/job")
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
     public Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> findAllByJob(@RequestParam Job job,
                                                                      @RequestParam(defaultValue = "0")
                                                                      @Min(value = 0, message = "must not be less than zero") int page,
                                                                      @RequestParam(defaultValue = "5", name = "size")
                                                                      @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var monsterEntityFlux = monsterService.findAllByJob(job, page, size);
-        return getMonoResponseEntity(monsterEntityFlux);
+        return getMonoResponseEntity(monsterService.findAllByJob(job, page, size));
     }
 
     @GetMapping("/fear-action/{date}")
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
     public Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> findAllByFearActionDate(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date,
                                                                                 @RequestParam(defaultValue = "0")
                                                                                 @Min(value = 0, message = "must not be less than zero") int page,
                                                                                 @RequestParam(defaultValue = "5")
                                                                                 @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var monsterEntityFlux = monsterService.findAllByDateOfFearAction(date, page, size);
-        return getMonoResponseEntity(monsterEntityFlux);
+        return getMonoResponseEntity(monsterService.findAllByDateOfFearAction(date, page, size))
+                .doOnError(Throwable::printStackTrace);
     }
 
     @GetMapping("/infection/{date}")
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER') or hasAuthority('DISINFECTOR')")
     public Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> findAllByInfectionDate(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date) {
-        var monsterEntityFlux = monsterService.findAllByInfectionDate(date);
-        return getMonoResponseEntity(monsterEntityFlux);
+        return getMonoResponseEntity(monsterService.findAllByInfectionDate(date));
     }
 
     @PatchMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.OK)
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('RECRUITER')")
     public Mono<AnswerMonsterDTO> updateJobById(@PathVariable UUID monsterId, @RequestParam Job job) {
-        Mono<MonsterEntity> monsterEntityMono = monsterService.updateJobById(job, monsterId);
-        return monsterMapper.mapEntityToDto(monsterEntityMono, getRewardsEntityFlux(monsterEntityMono));
+        return monsterService.updateJobById(job, monsterId)
+                .flatMap(monsterEntity -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity)));
     }
 
     @DeleteMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    //@PreAuthorize("hasAuthority('ADMIN')")
     public Mono<Void> deleteMonster(@PathVariable UUID monsterId) {
         return monsterService.delete(monsterId);
     }
 
     @PutMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.OK)
-    //@PreAuthorize("hasAuthority('ADMIN')")
-    public Mono<AnswerMonsterDTO> putMonster(@PathVariable UUID monsterId, @RequestBody Mono<@Valid RequestMonsterDTO> monsterDTOMono) {
-        Mono<MonsterEntity> monsterEntityMono = monsterService.updateById(monsterId, monsterDTOMono);
-        return monsterMapper.mapEntityToDto(monsterEntityMono, getRewardsEntityFlux(monsterEntityMono));
+    public Mono<AnswerMonsterDTO> putMonster(@PathVariable UUID monsterId, @RequestBody @Valid Mono<RequestMonsterDTO> monsterDTOMono) {
+        return monsterService.updateById(monsterId, monsterDTOMono)
+                .flatMap(monsterEntity -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity)));
     }
 
     private Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> getMonoResponseEntity(Flux<MonsterEntity> monsterEntityFlux) {
         var monsterDTOFlux = monsterEntityFlux.buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
-                        .map(monsterEntity -> monsterMapper.mapEntityToDto(Mono.just(monsterEntity), getRewardsEntityFlux(Mono.just(monsterEntity))))
-                        .subscribeOn(Schedulers.parallel()))
-                .flatMap(Mono::flux);
+                        .map(monsterMapper::mapEntityToDto)
+                        .subscribeOn(Schedulers.parallel()));
 
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<AnswerMonsterDTO>>(HttpStatus.NO_CONTENT));
         var responseMono = Mono.just(new ResponseEntity<>(monsterDTOFlux, HttpStatus.OK));
 
         return monsterEntityFlux.hasElements().flatMap(hasElements -> hasElements ? responseMono : emptyResponseMono);
-    }
-
-    private Flux<RewardEntity> getRewardsEntityFlux(Mono<MonsterEntity> monsterEntityMono) {
-        return monsterEntityMono
-                .flux()
-                .flatMap(monsterEntity -> Flux.fromIterable(monsterEntity.getRewards()));
     }
 }

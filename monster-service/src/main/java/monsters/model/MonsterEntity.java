@@ -68,6 +68,7 @@ public class MonsterEntity {
             inverseJoinColumns = @JoinColumn(name = "reward_id")
     )
     @Fetch(FetchMode.SUBSELECT)
+    @NotNull(message = "shouldn't be null")
     @ToString.Exclude
     private List<RewardEntity> rewards;
 
