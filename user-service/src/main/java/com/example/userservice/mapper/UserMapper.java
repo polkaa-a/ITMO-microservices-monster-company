@@ -46,6 +46,7 @@ public class UserMapper {
         return User.builder()
                 .id(row.get("id", UUID.class))
                 .username(row.get("username", String.class))
+                .password(row.get("password", String.class))
                 .roleId(row.get("role_id", UUID.class))
                 .roleName(row.get("name", String.class))
                 .build();
