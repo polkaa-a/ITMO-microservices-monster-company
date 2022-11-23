@@ -30,20 +30,19 @@ public class ElectricBalloonController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT')")
-    public Mono<AnswerElectricBalloonDTO> addElectricBalloon(@RequestBody Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
-        return electricBalloonMapper.mapEntityToDto(electricBalloonService.save(electricBalloonDTOMono));
+    public Mono<AnswerElectricBalloonDTO> addElectricBalloon(@RequestBody @Valid Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
+        return electricBalloonService.save(electricBalloonDTOMono)
+                .flatMap(electricBalloonEntity -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity)));
     }
 
     @GetMapping("/{electricBalloonId}")
     @ResponseStatus(HttpStatus.OK)
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER')")
     public Mono<AnswerElectricBalloonDTO> getElectricBalloon(@PathVariable UUID electricBalloonId) {
-        return electricBalloonMapper.mapEntityToDto(electricBalloonService.findById(electricBalloonId));
+        return electricBalloonService.findById(electricBalloonId)
+                .flatMap(electricBalloonEntity -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity)));
     }
 
     @GetMapping("/{date}")
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT') or hasAuthority('RECRUITER')")
     public Mono<ResponseEntity<Flux<AnswerElectricBalloonDTO>>> findAllFilledByDateAndCity(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date,
                                                                                            @RequestParam(required = false) UUID cityId,
                                                                                            @RequestParam(defaultValue = "0")
@@ -53,13 +52,13 @@ public class ElectricBalloonController {
 
         var cityNotNullFlux = electricBalloonService.findAllFilledByDateAndCity(date, cityId, page, size);
         var cityIsNullFlux = electricBalloonService.findAllFilledByDate(date, page, size);
-        var electricBalloonEntityFlux = Mono.just(cityId).hasElement().flux().flatMap(hasElements -> hasElements ? cityNotNullFlux : cityIsNullFlux);
+        var electricBalloonEntityFlux = Mono.just(cityId != null).flux().flatMap(notNull -> notNull ? cityNotNullFlux : cityIsNullFlux);
 
-        var electricBalloonDTOFlux = electricBalloonEntityFlux.buffer(BUFFER_SIZE)
+        var electricBalloonDTOFlux = electricBalloonEntityFlux
+                .buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
-                        .map(electricBalloonEntity -> electricBalloonMapper.mapEntityToDto(Mono.just(electricBalloonEntity)))
-                        .subscribeOn(Schedulers.parallel()))
-                .flatMap(Mono::flux);
+                        .map(electricBalloonMapper::mapEntityToDto)
+                        .subscribeOn(Schedulers.parallel()));
 
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<AnswerElectricBalloonDTO>>(HttpStatus.NO_CONTENT));
         var responseMono = Mono.just(new ResponseEntity<>(electricBalloonDTOFlux, HttpStatus.OK));
@@ -69,15 +68,14 @@ public class ElectricBalloonController {
 
     @DeleteMapping("/{electricBalloonId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT')")
     public Mono<Void> deleteElectricBalloon(@PathVariable UUID electricBalloonId) {
         return electricBalloonService.delete(electricBalloonId);
     }
 
     @PutMapping("/{electricBalloonId}")
     @ResponseStatus(HttpStatus.OK)
-    //@PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SCARER') or hasAuthority('SCARE ASSISTANT')")
-    public Mono<AnswerElectricBalloonDTO> putElectricBalloon(@PathVariable UUID electricBalloonId, @RequestBody Mono<@Valid RequestElectricBalloonDTO> electricBalloonDTOMono) {
-        return electricBalloonMapper.mapEntityToDto(electricBalloonService.updateById(electricBalloonId, electricBalloonDTOMono));
+    public Mono<AnswerElectricBalloonDTO> putElectricBalloon(@PathVariable UUID electricBalloonId, @RequestBody @Valid Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
+        return electricBalloonService.updateById(electricBalloonId, electricBalloonDTOMono)
+                .flatMap(electricBalloonEntity -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity)));
     }
 }

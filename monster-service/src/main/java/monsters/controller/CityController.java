@@ -19,7 +19,6 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/cities")
-//@PreAuthorize("hasAuthority('ADMIN')")
 public class CityController {
 
     private static final int BUFFER_SIZE = 5;
@@ -28,8 +27,8 @@ public class CityController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<CityDTO> addCity(@RequestBody Mono<@Valid CityDTO> cityDTOMono) {
-        return cityMapper.mapEntityToDto(cityService.save(cityDTOMono));
+    public Mono<CityDTO> addCity(@RequestBody @Valid Mono<CityDTO> cityDTOMono) {
+        return cityService.save(cityDTOMono).flatMap(cityEntity -> Mono.just(cityMapper.mapEntityToDto(cityEntity)));
     }
 
     @GetMapping
@@ -38,17 +37,17 @@ public class CityController {
                                                        @RequestParam(defaultValue = "5")
                                                        @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var cityEntityFlux = cityService.findAll(page, size);
-        var cityDTOFlux = cityEntityFlux.buffer(BUFFER_SIZE)
+        var cityDTOFlux = cityService.findAll(page, size)
+                .buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
-                        .map(cityEntity -> cityMapper.mapEntityToDto(Mono.just(cityEntity)))
+                        .map(cityEntity -> Mono.just(cityMapper.mapEntityToDto(cityEntity)))
                         .subscribeOn(Schedulers.parallel()))
                 .flatMap(Mono::flux);
 
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<CityDTO>>(HttpStatus.NO_CONTENT));
         var responseMono = Mono.just(new ResponseEntity<>(cityDTOFlux, HttpStatus.OK));
 
-        return cityEntityFlux.hasElements().flatMap(hasElements -> hasElements ? responseMono : emptyResponseMono);
+        return cityDTOFlux.hasElements().flatMap(hasElements -> hasElements ? responseMono : emptyResponseMono);
     }
 
     @DeleteMapping("/{cityId}")
@@ -59,8 +58,8 @@ public class CityController {
 
     @PutMapping("/{cityId}")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<CityDTO> putCity(@PathVariable UUID cityId, @RequestBody Mono<@Valid CityDTO> cityDTOMono) {
-        return cityMapper.mapEntityToDto(cityService.updateById(cityId, cityDTOMono));
+    public Mono<CityDTO> putCity(@PathVariable UUID cityId, @RequestBody @Valid Mono<CityDTO> cityDTOMono) {
+        return cityService.updateById(cityId, cityDTOMono).flatMap(cityEntity -> Mono.just(cityMapper.mapEntityToDto(cityEntity)));
     }
 }
 
