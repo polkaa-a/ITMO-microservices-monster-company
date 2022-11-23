@@ -7,35 +7,27 @@ import monsters.model.CityEntity;
 import monsters.model.ElectricBalloonEntity;
 import monsters.model.FearActionEntity;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class ElectricBalloonMapper {
 
     private final FearActionMapper fearActionMapper;
+    private final CityMapper cityMapper;
 
-    public Mono<AnswerElectricBalloonDTO> mapEntityToDto(Mono<ElectricBalloonEntity> electricBalloonEntityMono) {
-        var fearActionDTOMono = electricBalloonEntityMono.flatMap(
-                electricBalloonEntity -> fearActionMapper.mapEntityToDto(Mono.just(
-                        electricBalloonEntity.getFearActionEntity())));
-
-        return electricBalloonEntityMono.zipWith(fearActionDTOMono)
-                .flatMap(tuple -> Mono.just(
-                        AnswerElectricBalloonDTO.builder()
-                                .id(tuple.getT1().getId())
-                                .fearAction(tuple.getT2())
-                                .city(tuple.getT1().getCityEntity())
-                                .build()));
+    public AnswerElectricBalloonDTO mapEntityToDto(ElectricBalloonEntity electricBalloonEntity) {
+        return AnswerElectricBalloonDTO.builder()
+                .id(electricBalloonEntity.getId())
+                .fearAction(fearActionMapper.mapEntityToDto(electricBalloonEntity.getFearActionEntity()))
+                .city(cityMapper.mapEntityToDto(electricBalloonEntity.getCityEntity()))
+                .build();
     }
 
-    public Mono<ElectricBalloonEntity> mapDtoToEntity(Mono<RequestElectricBalloonDTO> electricBalloonDTOMono, Mono<CityEntity> cityEntityMono, Mono<FearActionEntity> fearActionEntityMono) {
-        return Mono.zip(electricBalloonDTOMono, fearActionEntityMono, cityEntityMono)
-                .flatMap(tuple -> Mono.just(
-                        ElectricBalloonEntity.builder()
-                                .id(tuple.getT1().getId())
-                                .fearActionEntity(tuple.getT2())
-                                .cityEntity(tuple.getT3())
-                                .build()));
+    public ElectricBalloonEntity mapDtoToEntity(RequestElectricBalloonDTO electricBalloonDTO, FearActionEntity fearActionEntity, CityEntity cityEntity) {
+        return ElectricBalloonEntity.builder()
+                .fearActionEntity(fearActionEntity)
+                .cityEntity(cityEntity)
+                .id(electricBalloonDTO.getId())
+                .build();
     }
 }

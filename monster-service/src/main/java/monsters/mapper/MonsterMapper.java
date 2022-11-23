@@ -7,63 +7,55 @@ import monsters.dto.answer.AnswerMonsterDTO;
 import monsters.dto.request.RequestMonsterDTO;
 import monsters.model.MonsterEntity;
 import monsters.model.RewardEntity;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 @RequiredArgsConstructor
+@Component
 public class MonsterMapper {
 
-    private static final int BUFFER_SIZE = 10;
-    private final ModelMapper modelMapper;
     private final RewardMapper rewardMapper;
 
-    public Mono<AnswerMonsterDTO> mapEntityToDto(Mono<MonsterEntity> monsterEntityMono, Flux<RewardEntity> rewardEntityFlux) {
-        var rewardDTOFlux = rewardEntityFlux
-                .buffer(BUFFER_SIZE)
-                .flatMap(it -> Flux.fromIterable(it)
-                        .map(rewardEntity -> rewardMapper.mapEntityToDto(Mono.just(rewardEntity)))
-                        .flatMap(Mono::flux)
-                        .subscribeOn(Schedulers.parallel()));
-
-        return monsterEntityMono
-                .zipWith(Mono.just(rewardDTOFlux))
-                .flatMap(tuple -> Mono.just(modelMapper.map(tuple.getT1(), AnswerMonsterDTO.class))
-                        .flatMap(monsterDTO -> {
-                            monsterDTO.setUserId(tuple.getT1().getUserId());
-                            return Mono.fromCallable(tuple.getT2()::toIterable).subscribeOn(Schedulers.boundedElastic())
-                                    .flatMap(iterable -> {
-                                        List<RewardDTO> rewards = new ArrayList<>();
-                                        iterable.forEach(rewards::add);
-                                        monsterDTO.setRewards(rewards);
-                                        return Mono.just(monsterDTO);
-                                    });
-                        }));
-
+    public AnswerMonsterDTO mapEntityToDto(MonsterEntity monsterEntity) {
+        List<RewardEntity> rewards = monsterEntity.getRewards();
+        List<RewardDTO> rewardsDTOs = new ArrayList<>();
+        for (RewardEntity rewardEntity : rewards) {
+            rewardsDTOs.add(rewardMapper.mapEntityToDto(rewardEntity));
+        }
+        return AnswerMonsterDTO.builder()
+                .userId(monsterEntity.getUserId())
+                .salary(monsterEntity.getSalary())
+                .name(monsterEntity.getName())
+                .job(monsterEntity.getJob())
+                .gender(monsterEntity.getGender())
+                .email(monsterEntity.getEmail())
+                .dateOfBirth(monsterEntity.getDateOfBirth())
+                .id(monsterEntity.getId())
+                .rewards(rewardsDTOs)
+                .build();
     }
 
-    public Mono<MonsterEntity> mapDtoToEntity(Mono<RequestMonsterDTO> monsterDTOMono) {
-        return monsterDTOMono.flatMap(monsterDTO -> Mono.just(
-                        modelMapper.map(monsterDTO, MonsterEntity.class))
-                .flatMap(monsterEntity -> {
-                    monsterEntity.setUserId(monsterDTO.getUserId());
-                    return Mono.just(monsterEntity);
-                }));
+    public MonsterEntity mapDtoToEntity(RequestMonsterDTO monsterDTO) {
+        return MonsterEntity.builder()
+                .dateOfBirth(monsterDTO.getDateOfBirth())
+                .email(monsterDTO.getEmail())
+                .gender(monsterDTO.getGender())
+                .id(monsterDTO.getId())
+                .job(monsterDTO.getJob())
+                .name(monsterDTO.getName())
+                .salary(monsterDTO.getSalary())
+                .userId(monsterDTO.getUserId())
+                .rewards(new ArrayList<>())
+                .build();
     }
 
-    public Mono<MonsterRatingDTO> mapEntityToRatingDTO(Mono<MonsterEntity> monsterEntityMono, long countBalloons) {
-        return monsterEntityMono.flatMap(monsterEntity -> Mono.just(
-                MonsterRatingDTO.builder()
-                        .monsterID(monsterEntity.getId())
-                        .countBalloons(countBalloons)
-                        .build()
-        ));
+    public MonsterRatingDTO mapEntityToRatingDTO(MonsterEntity monsterEntity, long countBalloons) {
+        return MonsterRatingDTO.builder()
+                .monsterID(monsterEntity.getId())
+                .countBalloons(countBalloons)
+                .build();
     }
 
 }
