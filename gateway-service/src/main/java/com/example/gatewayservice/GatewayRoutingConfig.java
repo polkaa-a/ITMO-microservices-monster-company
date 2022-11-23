@@ -1,28 +1,36 @@
 package com.example.gatewayservice;
 
+import com.example.gatewayservice.authorization.RoleAuthGatewayFilterFactory;
+import com.example.gatewayservice.authorization.RoleAuthGatewayFilterFactory.Config;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
-public class GatewayRoutingConfig {
+import java.util.List;
 
+@Configuration
+@RequiredArgsConstructor
+public class GatewayRoutingConfig {
     @Bean
-    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+    public RouteLocator customRouteLocator(RouteLocatorBuilder builder,
+                                           RoleAuthGatewayFilterFactory authFactory) {
         return builder.routes()
-                .route("user-service", route -> route.path("/users/**")
-                        .uri("http://localhost:8081"))
-                .route("user-service", route -> route.path("/roles/**")
-                        .uri("http://localhost:8081"))
-                .route("infection-service", route -> route.path("/infections/**")
-                        .uri("http://localhost:8083"))
-                .route("infection-service", route -> route.path("/infected-things/**")
-                        .uri("http://localhost:8083"))
-                .route("infection-service", route -> route.path("/doors/**")
-                        .uri("http://localhost:8083"))
-                .route("infection-service", route -> route.path("/child/**")
-                        .uri("http://localhost:8083"))
+                .route(route -> route.path("/users/**")
+                       .filters(f -> f.filter(authFactory.apply(
+                               new Config(List.of("ADMIN","SCARER"))
+                        )))
+                        .uri("lb://user-service"))
+                .route(route -> route.path("/roles/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN"))
+                        )))
+                        .uri("lb://user-service"))
+                .route(route -> route.path("/auth")
+                        .uri("lb://user-service"))
                 .build();
     }
 }
+
+
