@@ -6,6 +6,7 @@ import com.example.infectionservice.mapper.InfectedThingMapper;
 import com.example.infectionservice.model.ChildEntity;
 import com.example.infectionservice.model.DoorEntity;
 import com.example.infectionservice.model.InfectedThingEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -14,14 +15,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Repository
 public class InfectedThingRepository {
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public InfectedThingRepository (JdbcTemplate jdbcTemplate){
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public InfectedThingEntity save(InfectedThingEntity infectedThingEntity) {
         infectedThingEntity.setId(UUID.randomUUID());
