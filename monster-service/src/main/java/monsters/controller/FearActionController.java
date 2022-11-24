@@ -5,6 +5,7 @@ import monsters.dto.answer.AnswerFearActionDTO;
 import monsters.dto.request.RequestFearActionDTO;
 import monsters.mapper.FearActionMapper;
 import monsters.service.FearActionService;
+import monsters.service.feign.clients.ChildServiceFeignClient;
 import monsters.service.feign.clients.UserServiceFeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,7 @@ public class FearActionController {
     private static final int BUFFER_SIZE = 40;
     private final FearActionService fearActionService;
     private final UserServiceFeignClient userServiceFeignClient;
+    private final ChildServiceFeignClient childServiceFeignClient;
     private final FearActionMapper fearActionMapper;
 
     @GetMapping("/{fearActionId}")
@@ -35,7 +37,7 @@ public class FearActionController {
     public Mono<AnswerFearActionDTO> getFearAction(@PathVariable UUID fearActionId) {
         return fearActionService.findById(fearActionId)
                 .flatMap(fearActionEntity -> userServiceFeignClient.findById(fearActionEntity.getMonsterEntity().getUserId())
-                        .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO))));
+                        .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO, childServiceFeignClient.findById(fearActionEntity.getDoorId())))));
     }
 
     @GetMapping("/date/{date}")
@@ -48,8 +50,8 @@ public class FearActionController {
         var fearActionDTOFlux = fearActionService.findAllByDate(date, page, size)
                 .buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
-                        .flatMap(fearActionEntity ->  userServiceFeignClient.findById(fearActionEntity.getMonsterEntity().getUserId())
-                                .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO))))
+                        .flatMap(fearActionEntity -> userServiceFeignClient.findById(fearActionEntity.getMonsterEntity().getUserId())
+                                .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO, childServiceFeignClient.findById(fearActionEntity.getDoorId())))))
                         .subscribeOn(Schedulers.parallel()));
 
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<AnswerFearActionDTO>>(HttpStatus.NO_CONTENT));
@@ -63,7 +65,7 @@ public class FearActionController {
     public Mono<AnswerFearActionDTO> addFearAction(@RequestBody @Valid Mono<RequestFearActionDTO> fearActionDTOMono) {
         return fearActionService.save(fearActionDTOMono)
                 .flatMap(fearActionEntity -> userServiceFeignClient.findById(fearActionEntity.getMonsterEntity().getUserId())
-                        .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO))))
+                        .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO, childServiceFeignClient.findById(fearActionEntity.getDoorId())))))
                 .doOnError(Throwable::printStackTrace);
     }
 
@@ -78,7 +80,7 @@ public class FearActionController {
     public Mono<AnswerFearActionDTO> putFearAction(@PathVariable UUID fearActionId, @RequestBody @Valid Mono<RequestFearActionDTO> fearActionMono) {
         return fearActionService.updateById(fearActionId, fearActionMono)
                 .flatMap(fearActionEntity -> userServiceFeignClient.findById(fearActionEntity.getMonsterEntity().getUserId())
-                        .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO))));
+                        .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO, childServiceFeignClient.findById(fearActionEntity.getDoorId())))));
     }
 
 }

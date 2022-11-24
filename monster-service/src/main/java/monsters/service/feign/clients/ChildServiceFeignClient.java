@@ -1,18 +1,17 @@
 package monsters.service.feign.clients;
 
-import monsters.dto.answer.UserResponseDTO;
+import monsters.dto.DoorDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import reactivefeign.spring.config.ReactiveFeignClient;
-import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-@ReactiveFeignClient(name = "user-service")
-public interface UserServiceFeignClient {
-    @GetMapping("/users-service/users/{id}")
+@ReactiveFeignClient(name = "infection-service")
+public interface ChildServiceFeignClient {
+    @GetMapping("/doors/{id}")
     @ResponseStatus(HttpStatus.OK)
-    Mono<UserResponseDTO> findById(@PathVariable UUID id);
+    DoorDTO findById(@PathVariable UUID id);
 }

@@ -60,7 +60,7 @@ public class MonsterController {
     public Mono<AnswerMonsterDTO> addMonster(@RequestBody @Valid Mono<RequestMonsterDTO> monsterDTOMono) {
         return monsterService.save(monsterDTOMono)
                 .flatMap(monsterEntity -> userServiceFeignClient.findById(monsterEntity.getUserId())
-                .flatMap(userResponseDTO -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity, userResponseDTO))));
+                        .flatMap(userResponseDTO -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity, userResponseDTO))));
     }
 
     @GetMapping
@@ -123,7 +123,7 @@ public class MonsterController {
     private Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> getMonoResponseEntity(Flux<MonsterEntity> monsterEntityFlux) {
         var monsterDTOFlux = monsterEntityFlux.buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
-                        .flatMap(monsterEntity ->  userServiceFeignClient.findById(monsterEntity.getUserId())
+                        .flatMap(monsterEntity -> userServiceFeignClient.findById(monsterEntity.getUserId())
                                 .flatMap(userResponseDTO -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity, userResponseDTO))))
                         .subscribeOn(Schedulers.parallel()));
 

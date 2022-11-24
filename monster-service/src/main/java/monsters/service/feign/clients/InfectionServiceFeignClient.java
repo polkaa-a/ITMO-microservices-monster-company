@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import java.util.Date;
 import java.util.List;
 
-@FeignClient(name = "infection-service", url = "http://localhost:8083/")
+@FeignClient(name = "infection-service")
 public interface InfectionServiceFeignClient {
     @GetMapping("/infections/{date}")
     @ResponseStatus(HttpStatus.OK)

@@ -1,6 +1,7 @@
 package monsters.mapper;
 
 import lombok.RequiredArgsConstructor;
+import monsters.dto.DoorDTO;
 import monsters.dto.answer.AnswerFearActionDTO;
 import monsters.dto.answer.UserResponseDTO;
 import monsters.dto.request.RequestFearActionDTO;
@@ -14,11 +15,11 @@ public class FearActionMapper {
 
     private final MonsterMapper monsterMapper;
 
-    public AnswerFearActionDTO mapEntityToDto(FearActionEntity fearActionEntity, UserResponseDTO userResponseDTO) {
+    public AnswerFearActionDTO mapEntityToDto(FearActionEntity fearActionEntity, UserResponseDTO userResponseDTO, DoorDTO doorDTO) {
         return AnswerFearActionDTO.builder()
                 .id(fearActionEntity.getId())
                 .monster(monsterMapper.mapEntityToDto(fearActionEntity.getMonsterEntity(), userResponseDTO))
-                .doorId(fearActionEntity.getDoorId())
+                .door(doorDTO)
                 .date(fearActionEntity.getDate())
                 .build();
     }

@@ -1,6 +1,7 @@
 package monsters.dto.answer;
 
 import lombok.*;
+import monsters.dto.DoorDTO;
 
 import javax.validation.constraints.NotNull;
 import java.sql.Date;
@@ -19,7 +20,7 @@ public class AnswerFearActionDTO {
     private AnswerMonsterDTO monster;
 
     @NotNull(message = "shouldn't be null")
-    private UUID doorId;
+    private DoorDTO door;
 
     @NotNull(message = "shouldn't be null")
     private Date date;
