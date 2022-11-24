@@ -8,6 +8,7 @@ import monsters.enums.Job;
 import monsters.mapper.MonsterMapper;
 import monsters.model.MonsterEntity;
 import monsters.service.MonsterService;
+import monsters.service.feign.clients.UserServiceFeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,13 +31,16 @@ public class MonsterController {
 
     private static final int BUFFER_SIZE = 40;
     private final MonsterService monsterService;
+    private final UserServiceFeignClient userServiceFeignClient;
     private final MonsterMapper monsterMapper;
 
     @GetMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<AnswerMonsterDTO> getMonster(@PathVariable UUID monsterId) {
         return monsterService.findById(monsterId)
-                .flatMap(monsterEntity -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity)));
+                .flatMap(monsterEntity -> userServiceFeignClient.findById(monsterEntity.getUserId())
+                        .flatMap(userResponseDTO -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity, userResponseDTO))));
+
     }
 
     @GetMapping("/rating")
@@ -55,7 +59,8 @@ public class MonsterController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<AnswerMonsterDTO> addMonster(@RequestBody @Valid Mono<RequestMonsterDTO> monsterDTOMono) {
         return monsterService.save(monsterDTOMono)
-                .flatMap(monsterEntity -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity)));
+                .flatMap(monsterEntity -> userServiceFeignClient.findById(monsterEntity.getUserId())
+                .flatMap(userResponseDTO -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity, userResponseDTO))));
     }
 
     @GetMapping
@@ -97,7 +102,8 @@ public class MonsterController {
     @ResponseStatus(HttpStatus.OK)
     public Mono<AnswerMonsterDTO> updateJobById(@PathVariable UUID monsterId, @RequestParam Job job) {
         return monsterService.updateJobById(job, monsterId)
-                .flatMap(monsterEntity -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity)));
+                .flatMap(monsterEntity -> userServiceFeignClient.findById(monsterEntity.getUserId())
+                        .flatMap(userResponseDTO -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity, userResponseDTO))));
     }
 
     @DeleteMapping("/{monsterId}")
@@ -110,13 +116,15 @@ public class MonsterController {
     @ResponseStatus(HttpStatus.OK)
     public Mono<AnswerMonsterDTO> putMonster(@PathVariable UUID monsterId, @RequestBody @Valid Mono<RequestMonsterDTO> monsterDTOMono) {
         return monsterService.updateById(monsterId, monsterDTOMono)
-                .flatMap(monsterEntity -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity)));
+                .flatMap(monsterEntity -> userServiceFeignClient.findById(monsterEntity.getUserId())
+                        .flatMap(userResponseDTO -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity, userResponseDTO))));
     }
 
     private Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> getMonoResponseEntity(Flux<MonsterEntity> monsterEntityFlux) {
         var monsterDTOFlux = monsterEntityFlux.buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
-                        .map(monsterMapper::mapEntityToDto)
+                        .flatMap(monsterEntity ->  userServiceFeignClient.findById(monsterEntity.getUserId())
+                                .flatMap(userResponseDTO -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity, userResponseDTO))))
                         .subscribeOn(Schedulers.parallel()));
 
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<AnswerMonsterDTO>>(HttpStatus.NO_CONTENT));

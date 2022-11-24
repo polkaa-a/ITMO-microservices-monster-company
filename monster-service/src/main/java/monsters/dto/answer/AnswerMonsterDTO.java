@@ -20,7 +20,7 @@ public class AnswerMonsterDTO {
     private UUID id;
 
     @NotNull(message = "shouldn't be null")
-    private UUID userId;
+    private UserResponseDTO userResponseDTO;
 
     @NotNull(message = "shouldn't be null")
     private Job job;

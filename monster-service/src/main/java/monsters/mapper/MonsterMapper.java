@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import monsters.dto.MonsterRatingDTO;
 import monsters.dto.RewardDTO;
 import monsters.dto.answer.AnswerMonsterDTO;
+import monsters.dto.answer.UserResponseDTO;
 import monsters.dto.request.RequestMonsterDTO;
 import monsters.model.MonsterEntity;
 import monsters.model.RewardEntity;
@@ -18,14 +19,14 @@ public class MonsterMapper {
 
     private final RewardMapper rewardMapper;
 
-    public AnswerMonsterDTO mapEntityToDto(MonsterEntity monsterEntity) {
+    public AnswerMonsterDTO mapEntityToDto(MonsterEntity monsterEntity, UserResponseDTO userResponseDTO) {
         List<RewardEntity> rewards = monsterEntity.getRewards();
         List<RewardDTO> rewardsDTOs = new ArrayList<>();
         for (RewardEntity rewardEntity : rewards) {
             rewardsDTOs.add(rewardMapper.mapEntityToDto(rewardEntity));
         }
         return AnswerMonsterDTO.builder()
-                .userId(monsterEntity.getUserId())
+                .userResponseDTO(userResponseDTO)
                 .salary(monsterEntity.getSalary())
                 .name(monsterEntity.getName())
                 .job(monsterEntity.getJob())
