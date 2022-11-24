@@ -1,7 +1,6 @@
 package monsters.service.feign.clients;
 
 import monsters.dto.answer.UserResponseDTO;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
