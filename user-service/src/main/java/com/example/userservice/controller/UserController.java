@@ -40,16 +40,10 @@ public class UserController {
                 );
     }
 
-    @GetMapping()
+    @GetMapping("/{username}")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<UserResponseDTO> findByUsername(@RequestParam String username) {
+    public Mono<UserResponseDTO> findByUsername(@PathVariable String username) {
         return userService.findByUsername(username).map(userMapper::toUserResponseDto);
-    }
-
-    @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public Mono<UserResponseDTO> findById(@PathVariable UUID id) {
-        return userService.findById(id).map(userMapper::toUserResponseDto);
     }
 
     @GetMapping
