@@ -1,15 +1,21 @@
 package com.example.gatewayservice;
 
+import com.example.gatewayservice.authorization.RoleAuthGatewayFilterFactory;
+import com.example.gatewayservice.authorization.RoleAuthGatewayFilterFactory.Config;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
-public class GatewayRoutingConfig {
+import java.util.List;
 
+@Configuration
+@RequiredArgsConstructor
+public class GatewayRoutingConfig {
     @Bean
-    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+    public RouteLocator customRouteLocator(RouteLocatorBuilder builder,
+                                           RoleAuthGatewayFilterFactory authFactory) {
         return builder.routes()
                 .route("user-service", route -> route.path("/users/**")
                         .uri("http://localhost:8081"))
@@ -28,3 +34,5 @@ public class GatewayRoutingConfig {
                 .build();
     }
 }
+
+
