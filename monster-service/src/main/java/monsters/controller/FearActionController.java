@@ -37,7 +37,9 @@ public class FearActionController {
     public Mono<AnswerFearActionDTO> getFearAction(@PathVariable UUID fearActionId) {
         return fearActionService.findById(fearActionId)
                 .flatMap(fearActionEntity -> userServiceFeignClient.findById(fearActionEntity.getMonsterEntity().getUserId())
-                        .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO, childServiceFeignClient.findById(fearActionEntity.getDoorId())))));
+                        .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(fearActionEntity.getDoorId()))
+                                .subscribeOn(Schedulers.boundedElastic()))
+                        .flatMap(tuple -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, tuple.getT1(), tuple.getT2()))));
     }
 
     @GetMapping("/date/{date}")
@@ -51,7 +53,9 @@ public class FearActionController {
                 .buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
                         .flatMap(fearActionEntity -> userServiceFeignClient.findById(fearActionEntity.getMonsterEntity().getUserId())
-                                .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO, childServiceFeignClient.findById(fearActionEntity.getDoorId())))))
+                                .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(fearActionEntity.getDoorId()))
+                                        .subscribeOn(Schedulers.boundedElastic()))
+                                .flatMap(tuple -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, tuple.getT1(), tuple.getT2()))))
                         .subscribeOn(Schedulers.parallel()));
 
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<AnswerFearActionDTO>>(HttpStatus.NO_CONTENT));
@@ -65,8 +69,9 @@ public class FearActionController {
     public Mono<AnswerFearActionDTO> addFearAction(@RequestBody @Valid Mono<RequestFearActionDTO> fearActionDTOMono) {
         return fearActionService.save(fearActionDTOMono)
                 .flatMap(fearActionEntity -> userServiceFeignClient.findById(fearActionEntity.getMonsterEntity().getUserId())
-                        .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO, childServiceFeignClient.findById(fearActionEntity.getDoorId())))))
-                .doOnError(Throwable::printStackTrace);
+                        .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(fearActionEntity.getDoorId()))
+                                .subscribeOn(Schedulers.boundedElastic()))
+                        .flatMap(tuple -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, tuple.getT1(), tuple.getT2()))));
     }
 
     @DeleteMapping("/{fearActionId}")
@@ -80,7 +85,9 @@ public class FearActionController {
     public Mono<AnswerFearActionDTO> putFearAction(@PathVariable UUID fearActionId, @RequestBody @Valid Mono<RequestFearActionDTO> fearActionMono) {
         return fearActionService.updateById(fearActionId, fearActionMono)
                 .flatMap(fearActionEntity -> userServiceFeignClient.findById(fearActionEntity.getMonsterEntity().getUserId())
-                        .flatMap(userResponseDTO -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, userResponseDTO, childServiceFeignClient.findById(fearActionEntity.getDoorId())))));
+                        .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(fearActionEntity.getDoorId()))
+                                .subscribeOn(Schedulers.boundedElastic()))
+                        .flatMap(tuple -> Mono.just(fearActionMapper.mapEntityToDto(fearActionEntity, tuple.getT1(), tuple.getT2()))));
     }
 
 }

@@ -5,6 +5,7 @@ import monsters.dto.answer.AnswerElectricBalloonDTO;
 import monsters.dto.request.RequestElectricBalloonDTO;
 import monsters.mapper.ElectricBalloonMapper;
 import monsters.service.ElectricBalloonService;
+import monsters.service.feign.clients.ChildServiceFeignClient;
 import monsters.service.feign.clients.UserServiceFeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,7 @@ public class ElectricBalloonController {
     private static final int BUFFER_SIZE = 40;
     private final ElectricBalloonService electricBalloonService;
     private final UserServiceFeignClient userServiceFeignClient;
+    private final ChildServiceFeignClient childServiceFeignClient;
     private final ElectricBalloonMapper electricBalloonMapper;
 
     @PostMapping
@@ -35,7 +37,9 @@ public class ElectricBalloonController {
     public Mono<AnswerElectricBalloonDTO> addElectricBalloon(@RequestBody @Valid Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
         return electricBalloonService.save(electricBalloonDTOMono)
                 .flatMap(electricBalloonEntity -> userServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getMonsterEntity().getUserId())
-                        .flatMap(userResponseDTO -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, userResponseDTO))));
+                        .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getDoorId()))
+                                .subscribeOn(Schedulers.boundedElastic()))
+                        .flatMap(tuple -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))));
     }
 
     @GetMapping("/{electricBalloonId}")
@@ -43,7 +47,9 @@ public class ElectricBalloonController {
     public Mono<AnswerElectricBalloonDTO> getElectricBalloon(@PathVariable UUID electricBalloonId) {
         return electricBalloonService.findById(electricBalloonId)
                 .flatMap(electricBalloonEntity -> userServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getMonsterEntity().getUserId())
-                        .flatMap(userResponseDTO -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, userResponseDTO))));
+                        .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getDoorId()))
+                                .subscribeOn(Schedulers.boundedElastic()))
+                        .flatMap(tuple -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))));
     }
 
     @GetMapping("/date/{date}")
@@ -62,7 +68,9 @@ public class ElectricBalloonController {
                 .buffer(BUFFER_SIZE)
                 .flatMap(it -> Flux.fromIterable(it)
                         .flatMap(electricBalloonEntity -> userServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getMonsterEntity().getUserId())
-                                .flatMap(userResponseDTO -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, userResponseDTO))))
+                                .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getDoorId()))
+                                        .subscribeOn(Schedulers.boundedElastic()))
+                                .flatMap(tuple -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))))
                         .subscribeOn(Schedulers.parallel()));
 
         var emptyResponseMono = Mono.just(new ResponseEntity<Flux<AnswerElectricBalloonDTO>>(HttpStatus.NO_CONTENT));
@@ -82,6 +90,8 @@ public class ElectricBalloonController {
     public Mono<AnswerElectricBalloonDTO> putElectricBalloon(@PathVariable UUID electricBalloonId, @RequestBody @Valid Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
         return electricBalloonService.updateById(electricBalloonId, electricBalloonDTOMono)
                 .flatMap(electricBalloonEntity -> userServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getMonsterEntity().getUserId())
-                        .flatMap(userResponseDTO -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, userResponseDTO))));
+                        .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getDoorId()))
+                                .subscribeOn(Schedulers.boundedElastic()))
+                        .flatMap(tuple -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))));
     }
 }
