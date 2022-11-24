@@ -19,7 +19,7 @@ public class GatewayRoutingConfig {
         return builder.routes()
                 .route(route -> route.path("/users/**")
                        .filters(f -> f.filter(authFactory.apply(
-                               new Config(List.of("ADMIN","SCARER"))
+                               new Config(List.of("ADMIN"))
                         )))
                         .uri("lb://user-service"))
                 .route(route -> route.path("/roles/**")
@@ -28,24 +28,51 @@ public class GatewayRoutingConfig {
                         )))
                         .uri("lb://user-service"))
                 .route(route -> route.path("/infections/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN, DISINFECTOR"))
+                        )))
                         .uri("lb://infection-service"))
                 .route(route -> route.path("/infected-things/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN, DISINFECTOR"))
+                        )))
                         .uri("lb://infection-service"))
                 .route(route -> route.path("/doors/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN"))
+                        )))
                         .uri("lb://child-service"))
                 .route(route -> route.path("/child/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN", "SCARER", "SCARER ASSISTANT"))
+                        )))
                         .uri("lb://child-service"))
                 .route(route -> route.path("/auth")
                         .uri("lb://user-service"))
                 .route(route -> route.path("/monsters/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN", "SCARER"))
+                        )))
                         .uri("lb://monster-service"))
                 .route(route -> route.path("/cities/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN"))
+                        )))
                         .uri("lb://monster-service"))
                 .route(route -> route.path("/electric-balloons/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN"))
+                        )))
                         .uri("lb://monster-service"))
                 .route(route -> route.path("/fear-actions/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN"))
+                        )))
                         .uri("lb://monster-service"))
                 .route(route -> route.path("/rewards/**")
+                        .filters(f -> f.filter(authFactory.apply(
+                                new Config(List.of("ADMIN"))
+                        )))
                         .uri("lb://monster-service"))
                 .build();
     }
