@@ -54,7 +54,7 @@ public class UserService {
     }
 
     public Mono<User> findById(UUID id) {
-        return userRepository.findById(id)
+        return userDatabaseClient.findById(id)
                 .switchIfEmpty(Mono.error(() -> new NotFoundException(EXC_MES_ID + id)));
     }
 
