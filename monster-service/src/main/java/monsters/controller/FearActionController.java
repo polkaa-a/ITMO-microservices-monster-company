@@ -2,7 +2,6 @@ package monsters.controller;
 
 import lombok.RequiredArgsConstructor;
 import monsters.dto.answer.AnswerFearActionDTO;
-import monsters.dto.answer.AnswerMonsterDTO;
 import monsters.dto.request.RequestFearActionDTO;
 import monsters.mapper.FearActionMapper;
 import monsters.service.FearActionService;
@@ -17,7 +16,7 @@ import reactor.core.scheduler.Schedulers;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import java.sql.Date;
+import java.util.Date;
 import java.util.UUID;
 
 @RestController
@@ -25,10 +24,9 @@ import java.util.UUID;
 @RequestMapping("/fear-actions")
 public class FearActionController {
 
+    private static final int BUFFER_SIZE = 40;
     private final FearActionService fearActionService;
     private final FearActionMapper fearActionMapper;
-
-    private static final int BUFFER_SIZE = 40;
 
     @GetMapping("/{fearActionId}")
     @ResponseStatus(HttpStatus.OK)
@@ -38,11 +36,11 @@ public class FearActionController {
     }
 
     @GetMapping("/date/{date}")
-    public Mono<ResponseEntity<Flux<AnswerFearActionDTO>>> findAllByDate(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date,
-                                                                                @RequestParam(defaultValue = "0")
-                                                                                @Min(value = 0, message = "must not be less than zero") int page,
-                                                                                @RequestParam(defaultValue = "5")
-                                                                                @Max(value = 50, message = "must not be more than 50 characters") int size) {
+    public Mono<ResponseEntity<Flux<AnswerFearActionDTO>>> findAllByDate(@PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date,
+                                                                         @RequestParam(defaultValue = "0")
+                                                                         @Min(value = 0, message = "must not be less than zero") int page,
+                                                                         @RequestParam(defaultValue = "5")
+                                                                         @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
         var fearActionDTOFlux = fearActionService.findAllByDate(date, page, size)
                 .buffer(BUFFER_SIZE)
