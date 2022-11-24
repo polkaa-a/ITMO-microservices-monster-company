@@ -1,6 +1,7 @@
 package monsters.mapper;
 
 import lombok.RequiredArgsConstructor;
+import monsters.dto.DoorDTO;
 import monsters.dto.answer.AnswerElectricBalloonDTO;
 import monsters.dto.answer.UserResponseDTO;
 import monsters.dto.request.RequestElectricBalloonDTO;
@@ -16,10 +17,10 @@ public class ElectricBalloonMapper {
     private final FearActionMapper fearActionMapper;
     private final CityMapper cityMapper;
 
-    public AnswerElectricBalloonDTO mapEntityToDto(ElectricBalloonEntity electricBalloonEntity, UserResponseDTO userResponseDTO) {
+    public AnswerElectricBalloonDTO mapEntityToDto(ElectricBalloonEntity electricBalloonEntity, UserResponseDTO userResponseDTO, DoorDTO doorDTO) {
         return AnswerElectricBalloonDTO.builder()
                 .id(electricBalloonEntity.getId())
-                .fearAction(fearActionMapper.mapEntityToDto(electricBalloonEntity.getFearActionEntity(), userResponseDTO))
+                .fearAction(fearActionMapper.mapEntityToDto(electricBalloonEntity.getFearActionEntity(), userResponseDTO, doorDTO))
                 .city(cityMapper.mapEntityToDto(electricBalloonEntity.getCityEntity()))
                 .build();
     }

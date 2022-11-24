@@ -89,8 +89,7 @@ public class MonsterController {
                                                                                 @RequestParam(defaultValue = "5")
                                                                                 @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        return getMonoResponseEntity(monsterService.findAllByDateOfFearAction(date, page, size))
-                .doOnError(Throwable::printStackTrace);
+        return getMonoResponseEntity(monsterService.findAllByDateOfFearAction(date, page, size));
     }
 
     @GetMapping("/infection/{date}")
