@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.UUID;
 
-@FeignClient(name = "infection-service")
+@FeignClient(name = "child-service")
 public interface ChildServiceFeignClient {
     @GetMapping("/doors/{id}")
     @ResponseStatus(HttpStatus.OK)
