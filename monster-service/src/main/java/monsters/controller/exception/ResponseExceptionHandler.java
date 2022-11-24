@@ -1,6 +1,8 @@
 package monsters.controller.exception;
 
+import feign.FeignException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -70,13 +72,26 @@ public class ResponseExceptionHandler {
         );
     }
 
-//    @ExceptionHandler(BadCredentialsException.class)
-//    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-//    public ErrorMessage handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
-//        return new ErrorMessage(
-//                HttpStatus.UNAUTHORIZED,
-//                "invalid user credentials",
-//                request.getDescription(false)
-//        );
-//    }
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ErrorMessage> handleFeignException(FeignException ex, WebRequest request) {
+        return switch (ex.status()) {
+            case 404 -> new ResponseEntity<>(new ErrorMessage(
+                    HttpStatus.NOT_FOUND,
+                    ex.getMessage(),
+                    request.getDescription(false),
+                    null), HttpStatus.NOT_FOUND);
+            case 503 -> new ResponseEntity<>(new ErrorMessage(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    ex.getMessage(),
+                    request.getDescription(false),
+                    null),
+                    HttpStatus.SERVICE_UNAVAILABLE);
+            default -> new ResponseEntity<>(new ErrorMessage(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ex.getMessage(),
+                    request.getDescription(false),
+                    null),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        };
+    }
 }

@@ -8,7 +8,6 @@ import monsters.mapper.MonsterMapper;
 import monsters.model.MonsterEntity;
 import monsters.repository.MonsterRepository;
 import monsters.service.feign.clients.InfectionServiceFeignClient;
-import monsters.service.feign.clients.UserServiceFeignClient;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -35,7 +34,6 @@ public class MonsterService {
     private final FearActionService fearActionService;
     private final MonsterMapper monsterMapper;
     private final InfectionServiceFeignClient infectionServiceFeignClient;
-    private final UserServiceFeignClient userServiceFeignClient;
 
     public Mono<MonsterEntity> save(Mono<RequestMonsterDTO> monsterDTOMono) {
         return monsterDTOMono.flatMap(monsterDTO ->
