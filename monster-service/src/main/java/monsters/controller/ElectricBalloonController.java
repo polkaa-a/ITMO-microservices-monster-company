@@ -43,7 +43,7 @@ public class ElectricBalloonController {
     }
 
     @GetMapping("/date/{date}")
-    public Mono<ResponseEntity<Flux<AnswerElectricBalloonDTO>>> findAllFilledByDateAndCity(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date,
+    public Mono<ResponseEntity<Flux<AnswerElectricBalloonDTO>>> findAllFilledByDateAndCity(@PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date,
                                                                                            @RequestParam(required = false) UUID cityId,
                                                                                            @RequestParam(defaultValue = "0")
                                                                                            @Min(value = 0, message = "must not be less than zero") int page,

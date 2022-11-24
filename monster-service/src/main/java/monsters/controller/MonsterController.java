@@ -20,7 +20,7 @@ import reactor.util.function.Tuple2;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import java.sql.Date;
+import java.util.Date;
 import java.util.UUID;
 
 @RestController
@@ -78,7 +78,7 @@ public class MonsterController {
     }
 
     @GetMapping("/fear-action/{date}")
-    public Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> findAllByFearActionDate(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date,
+    public Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> findAllByFearActionDate(@PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date,
                                                                                 @RequestParam(defaultValue = "0")
                                                                                 @Min(value = 0, message = "must not be less than zero") int page,
                                                                                 @RequestParam(defaultValue = "5")
@@ -89,7 +89,7 @@ public class MonsterController {
     }
 
     @GetMapping("/infection/{date}")
-    public Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> findAllByInfectionDate(@PathVariable @DateTimeFormat(fallbackPatterns = "dd-MM-yyyy") Date date) {
+    public Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> findAllByInfectionDate(@PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date) {
         return getMonoResponseEntity(monsterService.findAllByInfectionDate(date));
     }
 
