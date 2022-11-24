@@ -37,6 +37,16 @@ public class GatewayRoutingConfig {
                         .uri("lb://child-service"))
                 .route(route -> route.path("/auth")
                         .uri("lb://user-service"))
+                .route("monster-service", route -> route.path("/monsters/**")
+                        .uri("http://localhost:8082"))
+                .route("monster-service", route -> route.path("/cities/**")
+                        .uri("http://localhost:8082"))
+                .route("monster-service", route -> route.path("/electric-balloons/**")
+                        .uri("http://localhost:8082"))
+                .route("monster-service", route -> route.path("/fear-actions/**")
+                        .uri("http://localhost:8082"))
+                .route("monster-service", route -> route.path("/rewards/**")
+                        .uri("http://localhost:8082"))
                 .build();
     }
 }
