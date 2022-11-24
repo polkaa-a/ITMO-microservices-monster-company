@@ -2,11 +2,8 @@ package com.example.infectionservice.mapper;
 
 import com.example.infectionservice.dto.InfectionDTO;
 import com.example.infectionservice.dto.MonsterDTO;
-import com.example.infectionservice.model.ChildEntity;
-import com.example.infectionservice.model.DoorEntity;
 import com.example.infectionservice.model.InfectedThingEntity;
 import com.example.infectionservice.model.InfectionEntity;
-import com.example.infectionservice.service.InfectedThingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -21,14 +18,10 @@ public class InfectionMapper implements RowMapper<InfectionEntity> {
     @Override
     public InfectionEntity mapRow(ResultSet resultSet, int rowNum) throws SQLException {
 
-        DoorEntity doorEntity = new DoorEntity();
-        doorEntity.setId(resultSet.getObject("door_id", java.util.UUID.class));
-        doorEntity.setActive(resultSet.getBoolean("status"));
-
         InfectedThingEntity infectedThingEntity = new InfectedThingEntity();
         infectedThingEntity.setId(resultSet.getObject("infected_thing_id", java.util.UUID.class));
         infectedThingEntity.setName(resultSet.getString("name"));
-        infectedThingEntity.setDoor(doorEntity);
+        infectedThingEntity.setDoor(resultSet.getObject("door_id", java.util.UUID.class));
 
         InfectionEntity infectionEntity = new InfectionEntity();
         infectionEntity.setId(resultSet.getObject("id", java.util.UUID.class));
@@ -48,16 +41,6 @@ public class InfectionMapper implements RowMapper<InfectionEntity> {
                 .cureDate(infectionEntity.getCureDate())
                 .build();
     }
-
-//    public InfectionEntity mapDtoToEntity(InfectionDTO infectionDTO, MonsterEntity monsterEntity) {
-//        return InfectionEntity.builder()
-//                .id(infectionDTO.getId())
-//                .monster(monsterEntity)
-//                .infectedThing(infectedThingService.findById(infectionDTO.getInfectedThingId()))
-//                .infectionDate(infectionDTO.getInfectionDate())
-//                .cureDate(infectionDTO.getCureDate())
-//                .build();
-//    }
 
     public InfectionEntity mapDtoToEntity(InfectionDTO infectionDTO, MonsterDTO monsterDTO, InfectedThingEntity infectedThingEntity) {
         return InfectionEntity.builder()

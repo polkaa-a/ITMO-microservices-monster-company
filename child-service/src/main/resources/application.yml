@@ -1,9 +1,9 @@
 spring:
   application:
-    name: infection-service
+    name: child-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:monster_company}?currentSchema=infection
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:monster_company}?currentSchema=child
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:12345}
   jpa:
@@ -17,10 +17,10 @@ spring:
         format_sql: false
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yml
-    default-schema: infection
+    default-schema: child
 
 server:
-  port: 8083
+  port: 8085
 
 eureka:
   client:

@@ -3,10 +3,12 @@ package com.example.infectionservice.service;
 import com.example.infectionservice.controller.exception.NotFoundException;
 import com.example.infectionservice.dto.InfectedThingDTO;
 import com.example.infectionservice.mapper.InfectedThingMapper;
-import com.example.infectionservice.model.DoorEntity;
 import com.example.infectionservice.model.InfectedThingEntity;
 import com.example.infectionservice.repository.InfectedThingRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -16,29 +18,13 @@ import java.util.UUID;
 public class InfectedThingService {
 
     private final InfectedThingRepository infectedThingRepository;
-    private final DoorService doorService;
     private final InfectedThingMapper mapper;
 
     private static final String EXC_MES_ID = "none infected thing was found by id ";
 
-//    public InfectedThingEntity save(InfectedThingDTO infectedThingDTO) {
-//        DoorEntity doorEntity;
-//        try {
-//            doorEntity = doorService.findById(infectedThingDTO.getDoorId());
-//        } catch (NotFoundException exception) {
-//            doorEntity = doorService.save(new DoorEntity());
-//        }
-//        return infectedThingRepository.save(mapper.mapDtoToEntity(infectedThingDTO, doorEntity));
-//    }
-
     public InfectedThingEntity save(InfectedThingDTO infectedThingDTO) {
-        DoorEntity doorEntity;
-        try {
-            doorEntity = doorService.findById(infectedThingDTO.getDoorId());
-        } catch (NotFoundException exception) {
-            throw exception;
-        }
-        return infectedThingRepository.save(mapper.mapDtoToEntity(infectedThingDTO, doorEntity));
+        infectedThingDTO.setId(UUID.randomUUID());
+        return infectedThingRepository.save(mapper.mapDtoToEntity(infectedThingDTO));
     }
 
     public InfectedThingEntity findById(UUID infectedThingId) {
@@ -47,14 +33,12 @@ public class InfectedThingService {
         );
     }
 
-    //TODO" Pageable
-//    public Page<InfectedThingEntity> findAll(int page, int size, UUID doorId) {
-//        Pageable pageable = PageRequest.of(page, size);
-//        if (doorId != null) {
-//            DoorEntity doorEntity = doorService.findById(doorId);
-//            return infectedThingRepository.findAllByDoor(doorEntity, pageable);
-//        } else return infectedThingRepository.findAll(pageable);
-//    }
+    public Page<InfectedThingEntity> findAll(int page, int size, UUID doorId) {
+        Pageable pageable = PageRequest.of(page, size);
+        if (doorId != null) {
+            return infectedThingRepository.findAllByDoor(doorId, pageable);
+        } else return infectedThingRepository.findAll(pageable);
+    }
 
     public void delete(UUID infectedThingId) {
         infectedThingRepository.delete(

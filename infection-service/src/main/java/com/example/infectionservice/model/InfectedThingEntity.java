@@ -7,12 +7,13 @@ import java.util.UUID;
 @Getter
 @Setter
 @ToString
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class InfectedThingEntity {
 
     private UUID id;
     private String name;
-    private DoorEntity door;
+    private UUID door;
+
 }
