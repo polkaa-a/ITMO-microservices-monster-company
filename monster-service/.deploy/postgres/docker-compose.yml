@@ -6,7 +6,7 @@ services:
     container_name: monster-service
     restart: always
     ports:
-      - "5433:5433"
+      - "5433:5432"
     environment:
       POSTGRES_DB: "monsters"
       POSTGRES_USER: "postgres"
