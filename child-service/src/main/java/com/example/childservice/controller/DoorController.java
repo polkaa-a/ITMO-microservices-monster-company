@@ -33,6 +33,12 @@ public class DoorController {
         return doorMapper.mapEntityToDto(doorService.save(doorMapper.mapDtoToEntity(doorDTO)));
     }
 
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public DoorDTO findById(@PathVariable UUID id) {
+        return doorMapper.mapEntityToDto(doorService.findById(id));
+    }
+
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<PageDTO<DoorDTO>> findAll(@RequestParam(defaultValue = "0")

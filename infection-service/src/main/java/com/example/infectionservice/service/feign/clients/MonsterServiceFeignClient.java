@@ -9,10 +9,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.UUID;
 
-@FeignClient(name = "monster-service", url = "http://localhost:8082")
+@FeignClient(name = "monster-service")
 public interface MonsterServiceFeignClient {
-
-    @PostMapping()
+    @PostMapping
     @ResponseStatus(HttpStatus.OK)
     MonsterDTO findById(@PathVariable UUID id);
 }
