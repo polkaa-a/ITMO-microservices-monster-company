@@ -29,8 +29,7 @@ public class InfectedThingRepository {
     }
 
     public Optional<InfectedThingEntity> findById(UUID id) {
-           return jdbcTemplate.query("SELECT * FROM infected_thing JOIN door " +
-                "ON infected_thing.door_id = door.id WHERE infected_thing.id = ?",
+           return jdbcTemplate.query("SELECT * FROM infected_thing WHERE infected_thing.id = ?",
                 new InfectedThingMapper(),
                 id).stream().findAny();
     }
@@ -39,7 +38,7 @@ public class InfectedThingRepository {
         Integer count = jdbcTemplate.queryForObject(
                 "select count(*) from infection", Integer.class);
         List<InfectedThingEntity> infections = jdbcTemplate.query("SELECT * FROM infected_thing " +
-                        "JOIN door ON infected_thing.door_id = door.id limit ? offset ?",
+                        " limit ? offset ?",
                 new InfectedThingMapper(),
                 pageable.getPageSize(),
                 pageable.getOffset());
@@ -50,7 +49,7 @@ public class InfectedThingRepository {
         Integer count = jdbcTemplate.queryForObject(
                 "select count(*) from infection", Integer.class);
         List<InfectedThingEntity> infections = jdbcTemplate.query("SELECT * FROM infected_thing " +
-                        "JOIN door ON infected_thing.door_id = door.id where door_id = ? limit ? offset ?",
+                        " where door_id = ? limit ? offset ?",
                 new InfectedThingMapper(),
                 doorId,
                 pageable.getPageSize(),
