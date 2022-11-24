@@ -32,7 +32,7 @@ public class ChildRepository {
         jdbcTemplate.update("INSERT INTO child VALUES (?, ?, ?, ?, ?)",
                 childEntity.getId(),
                 childEntity.getName(),
-                childEntity.getGender(),
+                childEntity.getGender().toString(),
                 childEntity.getDateOfBirth(),
                 childEntity.getDoor().getId());
         return childEntity;
