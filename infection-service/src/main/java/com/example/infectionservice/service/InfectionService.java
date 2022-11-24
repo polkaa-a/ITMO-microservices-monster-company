@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -54,6 +55,10 @@ public class InfectionService {
         if (monsterId != null) {
            return infectionRepository.findAllByMonsterId(monsterId, pageable);
         } else return infectionRepository.findAll(pageable);
+    }
+
+    public List<InfectionEntity> findAllByDate(Date date) {
+        return infectionRepository.findAllByDate(date);
     }
 
     public void delete(UUID id) {

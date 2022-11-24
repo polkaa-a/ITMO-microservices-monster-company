@@ -17,6 +17,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.sql.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -61,6 +62,12 @@ public class InfectionController {
     @ResponseStatus(HttpStatus.OK)
     public InfectionDTO updateCureDate(@RequestBody Map<String, Date> cureDate, @PathVariable UUID id) {
         return infectionMapper.mapEntityToDto(infectionService.updateCureDate(id, cureDate));
+    }
+
+    @GetMapping("/infections/{date}")
+    @ResponseStatus(HttpStatus.OK)
+    List<InfectionDTO> findAllByDate(@PathVariable Date date) {
+        return infectionService.findAllByDate(date).stream().map(infectionMapper::mapEntityToDto).toList();
     }
 
     @DeleteMapping("/{id}")
