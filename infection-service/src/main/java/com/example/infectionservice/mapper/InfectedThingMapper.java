@@ -1,7 +1,6 @@
 package com.example.infectionservice.mapper;
 
 import com.example.infectionservice.dto.InfectedThingDTO;
-import com.example.infectionservice.model.DoorEntity;
 import com.example.infectionservice.model.InfectedThingEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
@@ -19,10 +18,7 @@ public class InfectedThingMapper implements RowMapper<InfectedThingEntity> {
         InfectedThingEntity infectedThingEntity = new InfectedThingEntity();
         infectedThingEntity.setId(resultSet.getObject("id", java.util.UUID.class));
         infectedThingEntity.setName(resultSet.getString("name"));
-        DoorEntity doorEntity = new DoorEntity();
-        doorEntity.setId(resultSet.getObject("door_id", java.util.UUID.class));
-        doorEntity.setActive(resultSet.getBoolean("status"));
-        infectedThingEntity.setDoor(doorEntity);
+        infectedThingEntity.setDoor(resultSet.getObject("door_id", java.util.UUID.class));
         return infectedThingEntity;
     }
 
@@ -30,15 +26,15 @@ public class InfectedThingMapper implements RowMapper<InfectedThingEntity> {
         return InfectedThingDTO.builder()
                 .id(infectedThingEntity.getId())
                 .name(infectedThingEntity.getName())
-                .doorId(infectedThingEntity.getDoor().getId())
+                .doorId(infectedThingEntity.getDoor())
                 .build();
     }
 
-    public InfectedThingEntity mapDtoToEntity(InfectedThingDTO infectedThingDTO, DoorEntity doorEntity) {
+    public InfectedThingEntity mapDtoToEntity(InfectedThingDTO infectedThingDTO) {
         return InfectedThingEntity.builder()
                 .id(infectedThingDTO.getId())
                 .name(infectedThingDTO.getName())
-                .door(doorEntity)
+                .door(infectedThingDTO.getDoorId())
                 .build();
     }
 }

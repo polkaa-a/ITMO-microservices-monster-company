@@ -8,14 +8,14 @@ import java.util.UUID;
 @Getter
 @Setter
 @ToString
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class InfectionEntity {
-
     private UUID id;
     private UUID monster;
     private InfectedThingEntity infectedThing;
     private Date infectionDate;
     private Date cureDate;
+
 }
