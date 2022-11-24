@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,9 +22,9 @@ public class InfectionRepository {
 
     public Optional<InfectionEntity> findById(UUID id) {
         return jdbcTemplate.query("SELECT * FROM infection " +
-                        "JOIN infected_thing ON infection.infected_thing_id = infected_thing.id " +
-                        "WHERE infection.id = ?",
-                new InfectionMapper(), id)
+                                "JOIN infected_thing ON infection.infected_thing_id = infected_thing.id " +
+                                "WHERE infection.id = ?",
+                        new InfectionMapper(), id)
                 .stream().findAny();
     }
 
@@ -46,13 +47,20 @@ public class InfectionRepository {
     public Page<InfectionEntity> findAll(Pageable pageable) {
         Integer count = jdbcTemplate.queryForObject(
                 "select count(*) from infection", Integer.class);
-            List<InfectionEntity> infections = jdbcTemplate.query("SELECT * FROM infection " +
-                            "JOIN infected_thing ON infection.infected_thing_id = infected_thing.id " +
-                            "limit ? offset ?",
+        List<InfectionEntity> infections = jdbcTemplate.query("SELECT * FROM infection " +
+                        "JOIN infected_thing ON infection.infected_thing_id = infected_thing.id " +
+                        "limit ? offset ?",
                 new InfectionMapper(),
                 pageable.getPageSize(),
                 pageable.getOffset());
         return new PageImpl<>(infections, pageable, count);
+    }
+
+    public List<InfectionEntity> findAllByDate(Date date) {
+        return jdbcTemplate.query("SELECT * from infection where infection_date=?",
+                new InfectionMapper(),
+                date
+        );
     }
 
     public Page<InfectionEntity> findAllByMonsterId(UUID monsterId, Pageable pageable) {
@@ -60,7 +68,7 @@ public class InfectionRepository {
                 "select count(*) from infection", Integer.class);
         List<InfectionEntity> infections = jdbcTemplate.query("SELECT * FROM infection " +
                         "JOIN infected_thing ON infection.infected_thing_id = infected_thing.id " +
-                "WHERE monster_id = ? " +
+                        "WHERE monster_id = ? " +
                         "limit ? offset ?",
                 new InfectionMapper(),
                 monsterId,
