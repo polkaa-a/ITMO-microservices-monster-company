@@ -1,4 +1,4 @@
-package com.example.infectionservice.dto;
+package com.example.infectionservice.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -11,10 +11,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class InfectedThingDTO {
-
-    private UUID id;
-
+public class InfectedThingRequestDTO {
     @NotNull(message = "shouldn't be null")
     @Size(min = 3, max = 16, message = "shouldn be between 3 and 16 symbols")
     private String name;

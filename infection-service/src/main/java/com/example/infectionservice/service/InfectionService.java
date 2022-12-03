@@ -1,8 +1,7 @@
 package com.example.infectionservice.service;
 
 import com.example.infectionservice.controller.exception.NotFoundException;
-import com.example.infectionservice.dto.InfectionDTO;
-import com.example.infectionservice.dto.MonsterDTO;
+import com.example.infectionservice.dto.request.InfectionRequestDTO;
 import com.example.infectionservice.mapper.InfectionMapper;
 import com.example.infectionservice.model.InfectedThingEntity;
 import com.example.infectionservice.model.InfectionEntity;
@@ -10,28 +9,27 @@ import com.example.infectionservice.repository.InfectionRepository;
 import com.example.infectionservice.service.feign.clients.MonsterServiceFeignClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
 public class InfectionService {
+    private static final String EXC_MES_ID = "infection not found by id ";
     private final InfectionRepository infectionRepository;
     private final MonsterServiceFeignClient monsterServiceFeignClient;
     private final InfectedThingService infectedThingService;
     private final InfectionMapper mapper;
-    private static final String EXC_MES_ID = "infection not found by id ";
 
-    public InfectionEntity save(InfectionDTO infectionDTO) {
-        MonsterDTO monsterDTO = monsterServiceFeignClient.findById(infectionDTO.getMonsterId());
-        InfectedThingEntity infectedThingEntity = infectedThingService.findById(infectionDTO.getInfectedThingId());
-        return infectionRepository.save(mapper.mapDtoToEntity(infectionDTO, monsterDTO, infectedThingEntity));
+    public InfectionEntity save(InfectionRequestDTO infectionRequestDTO) {
+        monsterServiceFeignClient.findById(infectionRequestDTO.getMonsterId());
+
+        InfectedThingEntity infectedThingEntity = infectedThingService.findById(infectionRequestDTO.getInfectedThingId());
+        return infectionRepository.save(mapper.mapDtoToEntity(infectionRequestDTO, infectedThingEntity));
 
     }
 
@@ -46,19 +44,12 @@ public class InfectionService {
                 () -> new NotFoundException(EXC_MES_ID + id)
         );
         infectionEntity.setCureDate(cureDate.get("cureDate"));
-        infectionRepository.save(infectionEntity);
+        infectionRepository.update(infectionEntity);
         return infectionEntity;
     }
 
-    public Page<InfectionEntity> findAll(int page, int size, UUID monsterId) {
-        Pageable pageable = PageRequest.of(page, size);
-        if (monsterId != null) {
-           return infectionRepository.findAllByMonsterId(monsterId, pageable);
-        } else return infectionRepository.findAll(pageable);
-    }
-
-    public List<InfectionEntity> findAllByDate(Date date) {
-        return infectionRepository.findAllByDate(date);
+    public Page<InfectionEntity> findAll(Pageable pageable, UUID monsterId, Date date) {
+        return infectionRepository.findAll(pageable, monsterId, date);
     }
 
     public void delete(UUID id) {

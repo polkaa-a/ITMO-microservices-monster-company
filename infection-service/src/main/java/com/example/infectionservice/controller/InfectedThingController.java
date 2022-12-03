@@ -1,13 +1,15 @@
 package com.example.infectionservice.controller;
 
-import com.example.infectionservice.dto.InfectedThingDTO;
-import com.example.infectionservice.dto.PageDTO;
+import com.example.infectionservice.dto.request.InfectedThingRequestDTO;
+import com.example.infectionservice.dto.response.InfectedThingResponseDTO;
+import com.example.infectionservice.dto.response.PageDTO;
 import com.example.infectionservice.mapper.InfectedThingMapper;
 import com.example.infectionservice.mapper.PageMapper;
 import com.example.infectionservice.model.InfectedThingEntity;
 import com.example.infectionservice.service.InfectedThingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -25,33 +27,38 @@ import java.util.UUID;
 public class InfectedThingController {
 
     private final InfectedThingService infectedThingService;
-    private final PageMapper<InfectedThingDTO> pageMapper;
+    private final PageMapper<InfectedThingResponseDTO> pageMapper;
     private final InfectedThingMapper infectedThingMapper;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public InfectedThingDTO save(@Valid @RequestBody InfectedThingDTO infectionDTO) {
-        return infectedThingMapper.mapEntityToDto(infectedThingService.save(infectionDTO));
+    public InfectedThingResponseDTO save(@Valid @RequestBody InfectedThingRequestDTO infectionDTO) {
+        return infectedThingService.save(infectionDTO);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public InfectedThingDTO findById(@PathVariable UUID id) {
-        return infectedThingMapper.mapEntityToDto(infectedThingService.findById(id));
+    public InfectedThingResponseDTO findById(@PathVariable UUID id) {
+        InfectedThingEntity infectedThingEntity = infectedThingService.findById(id);
+        return infectedThingMapper.mapEntityToDto(infectedThingEntity);
     }
 
 
     @GetMapping
-    public ResponseEntity<PageDTO<InfectedThingDTO>> findAll(@RequestParam(defaultValue = "0")
-                                                             @Min(value = 0, message = "must not be less than zero") int page,
-                                                             @RequestParam(defaultValue = "5")
-                                                             @Max(value = 50, message = "must not be more than 50 characters") int size,
-                                                             @RequestParam(required = false) UUID doorId) {
-        Page<InfectedThingEntity> pageThings = infectedThingService.findAll(page, size, doorId);
+    public ResponseEntity<PageDTO<InfectedThingResponseDTO>> findAll(@RequestParam(defaultValue = "0")
+                                                                     @Min(value = 0, message = "must not be less than zero")
+                                                                     int page,
+                                                                     @RequestParam(defaultValue = "5")
+                                                                     @Max(value = 50, message = "must not be more than 50 characters")
+                                                                     int size,
+                                                                     @RequestParam(required = false) UUID doorId) {
+        Page<InfectedThingEntity> pageThings = infectedThingService.findAll(PageRequest.of(page, size), doorId);
         if (pageThings.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
-            return new ResponseEntity<>(pageMapper.mapToDto(pageThings.map(infectedThingMapper::mapEntityToDto)), HttpStatus.OK);
+            return new ResponseEntity<>(pageMapper.mapToDto(pageThings.map(
+                    infectedThingMapper::mapEntityToDto
+            )), HttpStatus.OK);
         }
 
     }
