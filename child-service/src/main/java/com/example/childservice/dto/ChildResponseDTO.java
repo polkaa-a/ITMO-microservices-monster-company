@@ -1,21 +1,20 @@
-package com.example.childservice.model;
+package com.example.childservice.dto;
 
 import com.example.childservice.enums.Gender;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.sql.Date;
 import java.util.UUID;
 
 @Getter
 @Setter
-@ToString
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class ChildEntity {
+public class ChildResponseDTO {
     private UUID id;
     private String name;
-    private Date dateOfBirth;
+    private Date dob;
     private Gender gender;
-    private DoorEntity door;
+    private DoorDTO doorDTO;
 }

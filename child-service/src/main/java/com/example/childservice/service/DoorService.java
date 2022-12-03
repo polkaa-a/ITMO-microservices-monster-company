@@ -14,9 +14,8 @@ import java.util.UUID;
 @Service
 public class DoorService {
 
-    private final DoorRepository doorRepository;
-
     private static final String EXC_MES_ID = "none door was found by id";
+    private final DoorRepository doorRepository;
 
     public DoorEntity findById(UUID doorId) {
         return doorRepository.findById(doorId).orElseThrow(
@@ -29,8 +28,8 @@ public class DoorService {
         return doorRepository.save(doorEntity);
     }
 
-    public Page<DoorEntity> findAll(Pageable pageable) {
-        return doorRepository.findAll(pageable);
+    public Page<DoorEntity> findAll(Pageable pageable, Boolean status) {
+        return doorRepository.findAll(pageable, status);
     }
 
     public DoorEntity changeActive(UUID id) {

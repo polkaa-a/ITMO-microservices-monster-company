@@ -14,18 +14,16 @@ public class ErrorMessage {
     private String message;
 
     private List<Violation> violations;
-    private String path;
 
-    public ErrorMessage(HttpStatus httpStatus, String message, String path) {
+    public ErrorMessage(HttpStatus httpStatus, String message) {
         this.timestamp = Instant.now();
         this.status = httpStatus.value();
         this.error = httpStatus.getReasonPhrase();
         this.message = message;
-        this.path = path.substring(path.indexOf("/"));
     }
 
-    public ErrorMessage(HttpStatus httpStatus, String message, String path, List<Violation> violations) {
-        this(httpStatus, message, path);
+    public ErrorMessage(HttpStatus httpStatus, String message, List<Violation> violations) {
+        this(httpStatus, message);
         this.violations = violations;
     }
 }

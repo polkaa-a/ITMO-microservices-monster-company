@@ -13,9 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class ChildDTO {
-    private UUID id;
-
+public class ChildRequestDTO {
     @NotNull(message = "shouldn't be null")
     @Size(min = 1, message = "shouldn't be less than 1")
     private String name;
