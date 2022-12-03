@@ -30,9 +30,9 @@ public class RoleController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<RoleDTO> save(@Valid @RequestBody Mono<RoleDTO> roleDTOMono) {
         return roleDTOMono.flatMap(roleDTO ->
-                        roleService.save(roleDTO)
-                                .map(roleMapper::toRoleDTO)
-                );
+                roleService.save(roleDTO)
+                        .map(roleMapper::toRoleDTO)
+        );
     }
 
 

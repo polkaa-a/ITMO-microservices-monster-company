@@ -34,15 +34,13 @@ public class User implements Persistable<UUID> {
 
     @Transient
     private String roleName;
+    @Transient
+    private boolean newUser;
 
     @Override
     public boolean isNew() {
         return newUser;
     }
-
-    @Transient
-    private boolean newUser;
-
 
 
 }

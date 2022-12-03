@@ -24,13 +24,12 @@ public class Role implements Persistable<UUID> {
     @NotBlank(message = "cannot be null, empty or whitespace")
     @Size(min = 4, max = 16, message = "must be between 4 and 16 characters")
     private String name;
+    @Transient
+    private boolean newRole;
 
     @Override
     public boolean isNew() {
         return newRole;
     }
-
-    @Transient
-    private boolean newRole;
 }
 
