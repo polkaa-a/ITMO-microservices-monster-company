@@ -1,5 +1,6 @@
 package monsters.controller;
 
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import monsters.dto.MonsterRatingDTO;
 import monsters.dto.answer.AnswerMonsterDTO;
@@ -34,6 +35,7 @@ public class MonsterController {
     private final UserServiceFeignClient userServiceFeignClient;
     private final MonsterMapper monsterMapper;
 
+    @Timed
     @GetMapping("/{monsterId}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<AnswerMonsterDTO> getMonster(@PathVariable UUID monsterId) {
@@ -43,6 +45,7 @@ public class MonsterController {
 
     }
 
+    @Timed
     @GetMapping("/rating")
     @ResponseStatus(HttpStatus.OK)
     public Flux<MonsterRatingDTO> getRating(@RequestParam(defaultValue = "0")
@@ -63,6 +66,7 @@ public class MonsterController {
                         .flatMap(userResponseDTO -> Mono.just(monsterMapper.mapEntityToDto(monsterEntity, userResponseDTO))));
     }
 
+    @Timed
     @GetMapping
     public Mono<ResponseEntity<Flux<AnswerMonsterDTO>>> findAll(@RequestParam(defaultValue = "0")
                                                                 @Min(value = 0, message = "must not be less than zero") int page,

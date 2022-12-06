@@ -1,6 +1,6 @@
 package monsters.service;
 
-import lombok.RequiredArgsConstructor;
+import io.micrometer.core.instrument.MeterRegistry;
 import monsters.controller.exception.NotFoundException;
 import monsters.dto.request.RequestMonsterDTO;
 import monsters.enums.Job;
@@ -18,8 +18,8 @@ import reactor.util.function.Tuple2;
 import javax.persistence.EntityExistsException;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
-@RequiredArgsConstructor
 @Service
 public class MonsterService {
 
@@ -35,7 +35,25 @@ public class MonsterService {
     private final MonsterMapper monsterMapper;
     private final InfectionServiceFeignClient infectionServiceFeignClient;
 
+    private AtomicInteger addedMonsters;
+
+    public MonsterService(MonsterRepository monsterRepository,
+                          ElectricBalloonService electricBalloonService,
+                          FearActionService fearActionService,
+                          MonsterMapper monsterMapper,
+                          InfectionServiceFeignClient infectionServiceFeignClient,
+                          MeterRegistry meterRegistry) {
+        this.monsterRepository = monsterRepository;
+        this.electricBalloonService = electricBalloonService;
+        this.fearActionService = fearActionService;
+        this.monsterMapper = monsterMapper;
+        this.infectionServiceFeignClient = infectionServiceFeignClient;
+        addedMonsters.set(0);
+        meterRegistry.gauge("num of added monsters", addedMonsters);
+    }
+
     public Mono<MonsterEntity> save(Mono<RequestMonsterDTO> monsterDTOMono) {
+        addedMonsters.set(addedMonsters.incrementAndGet());
         return monsterDTOMono.flatMap(monsterDTO ->
                 Mono.fromCallable(() -> monsterRepository.findByEmail(monsterDTO.getEmail()).stream())
                         .subscribeOn(Schedulers.boundedElastic())
