@@ -35,9 +35,9 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<UserResponseDTO> save(@Valid @RequestBody Mono<UserRequestDTO> userRequestDTOMono) {
         return userRequestDTOMono.flatMap(userRequestDTO ->
-                        userService.save(userRequestDTO)
-                                .map(userMapper::toUserResponseDto)
-                );
+                userService.save(userRequestDTO)
+                        .map(userMapper::toUserResponseDto)
+        );
     }
 
     @GetMapping("/{username}")

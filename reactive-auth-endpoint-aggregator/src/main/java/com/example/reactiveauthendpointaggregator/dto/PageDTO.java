@@ -1,4 +1,4 @@
-package com.example.infectionservice.dto;
+package com.example.reactiveauthendpointaggregator.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -6,6 +6,7 @@ spring:
       server:
         git:
           uri: https://github.com/Cherrywoood/monster-company-config-repository.git
+          default-label: master
 
 server:
   port: 8888

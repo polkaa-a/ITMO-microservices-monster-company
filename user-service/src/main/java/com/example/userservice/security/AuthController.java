@@ -25,18 +25,18 @@ public class AuthController {
     @ResponseStatus(HttpStatus.OK)
     public Mono<AuthResponseDTO> login(@Valid @RequestBody Mono<AuthRequestDTO> authRequestDTOMono) {
         return authRequestDTOMono.flatMap(authRequestDTO ->
-            userService.findByUsername(authRequestDTO.getUsername())
-                    .flatMap(user -> {
-                        if (!passwordEncoder.matches(authRequestDTO.getPassword(), user.getPassword()))
-                            return Mono.error(new BadCredentialsException());
-                        return Mono.just(new AuthResponseDTO(
-                                jwtTokenProvider.createToken(user.getId(), user.getRoleName())
-                        ));
-                    })
-                    .doOnError(throwable -> {
-                        if (throwable instanceof NotFoundException)
-                            throw new BadCredentialsException();
-                    })
+                userService.findByUsername(authRequestDTO.getUsername())
+                        .flatMap(user -> {
+                            if (!passwordEncoder.matches(authRequestDTO.getPassword(), user.getPassword()))
+                                return Mono.error(new BadCredentialsException());
+                            return Mono.just(new AuthResponseDTO(
+                                    jwtTokenProvider.createToken(user.getUsername(), user.getRoleName())
+                            ));
+                        })
+                        .doOnError(throwable -> {
+                            if (throwable instanceof NotFoundException)
+                                throw new BadCredentialsException();
+                        })
         );
     }
 }

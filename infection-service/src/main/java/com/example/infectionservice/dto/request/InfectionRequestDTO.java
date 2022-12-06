@@ -1,4 +1,4 @@
-package com.example.infectionservice.dto;
+package com.example.infectionservice.dto.request;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -11,9 +11,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class InfectionDTO {
-
-    private UUID id;
+public class InfectionRequestDTO {
 
     @NotNull(message = "shouldn't be null")
     private UUID monsterId;

@@ -40,7 +40,7 @@ public class ResponseExceptionHandler {
     public ErrorMessage handleConstraintViolationException(WebExchangeBindException ex) {
         log.info("ERROR HANDLER");
 
-       List<Violation> violations = ex.getFieldErrors()
+        List<Violation> violations = ex.getFieldErrors()
                 .stream()
                 .map(violation ->
                         new Violation(violation.getField(), violation.getDefaultMessage())

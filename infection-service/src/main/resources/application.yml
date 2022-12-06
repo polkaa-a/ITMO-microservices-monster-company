@@ -1,6 +1,9 @@
 spring:
   application:
     name: infection-service
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
   config:
     import: optional:configserver:http://localhost:8888
 feign:

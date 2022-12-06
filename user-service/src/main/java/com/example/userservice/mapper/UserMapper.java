@@ -1,6 +1,7 @@
 package com.example.userservice.mapper;
 
 import com.example.userservice.dto.RoleDTO;
+import com.example.userservice.dto.UserFullResponseDTO;
 import com.example.userservice.dto.UserRequestDTO;
 import com.example.userservice.dto.UserResponseDTO;
 import com.example.userservice.model.User;
@@ -25,6 +26,18 @@ public class UserMapper {
         return UserResponseDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
+                .role(RoleDTO.builder()
+                        .id(user.getRoleId())
+                        .name(user.getRoleName())
+                        .build())
+                .build();
+    }
+
+    public UserFullResponseDTO toUserFullResponseDto(User user) {
+        return UserFullResponseDTO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .password(user.getPassword())
                 .role(RoleDTO.builder()
                         .id(user.getRoleId())
                         .name(user.getRoleName())

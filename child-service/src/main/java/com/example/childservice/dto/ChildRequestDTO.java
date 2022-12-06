@@ -1,24 +1,28 @@
-package com.example.infectionservice.dto;
+package com.example.childservice.dto;
 
+import com.example.childservice.enums.Gender;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Date;
 import java.util.UUID;
 
 @Getter
 @Setter
 @Builder
-public class InfectedThingDTO {
-
-    private UUID id;
-
+public class ChildRequestDTO {
     @NotNull(message = "shouldn't be null")
-    @Size(min = 3, max = 16, message = "shouldn be between 3 and 16 symbols")
+    @Size(min = 1, message = "shouldn't be less than 1")
     private String name;
 
     @NotNull(message = "shouldn't be null")
+    private Date dob;
+
+    @NotNull(message = "shouldn't be null")
+    private Gender gender;
+
     private UUID doorId;
 }

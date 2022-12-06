@@ -18,5 +18,4 @@ public class ChildEntity {
     private Date dateOfBirth;
     private Gender gender;
     private DoorEntity door;
-
 }

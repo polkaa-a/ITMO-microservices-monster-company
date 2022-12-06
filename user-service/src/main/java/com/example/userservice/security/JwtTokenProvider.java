@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.Base64;
 import java.util.Date;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -28,8 +27,8 @@ public class JwtTokenProvider {
         jwtSecret = Base64.getEncoder().encodeToString(jwtSecret.getBytes());
     }
 
-    public String createToken(UUID id, String role) {
-        Claims claims = Jwts.claims().setSubject(String.valueOf(id));
+    public String createToken(String username, String role) {
+        Claims claims = Jwts.claims().setSubject(username);
         claims.put("role", role);
         return Jwts.builder()
                 .setClaims(claims)

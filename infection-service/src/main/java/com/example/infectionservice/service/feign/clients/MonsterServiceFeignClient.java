@@ -2,16 +2,13 @@ package com.example.infectionservice.service.feign.clients;
 
 import com.example.infectionservice.dto.MonsterDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.UUID;
 
 @FeignClient(name = "monster-service")
 public interface MonsterServiceFeignClient {
-    @PostMapping
-    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/monsters/{id}")
     MonsterDTO findById(@PathVariable UUID id);
 }
