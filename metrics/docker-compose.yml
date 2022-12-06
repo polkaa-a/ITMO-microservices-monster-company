@@ -2,6 +2,7 @@ version: "3.7"
 
 services:
   grafana:
+    image: grafana-custom
     build: 'config/grafana'
     container_name: grafana
     depends_on:
@@ -47,7 +48,7 @@ services:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
       - /sys:/sys:ro
-      - /var/lib/docker/:var/lib/docker:ro
+      - /var/lib/docker/:/var/lib/docker:ro
 networks:
   monitoring:
 

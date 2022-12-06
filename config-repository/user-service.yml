@@ -26,6 +26,29 @@ eureka:
   instance:
     prefer-ip-address: true
 
-
+#3
+management:
+  endpoints:
+    web:
+      exposure:
+        include: *
+  metrics:
+    enable:
+      jvm: true
+    export:
+      prometheus:
+        enabled: true
+        pushgateway:
+          enabled: true
+          push-rate: 5s
+          base-url: 172.17.01:9091
+          grouping-key:
+            application: ${spring.application.name}
+            instance: ${spring.application.name}:${server.port}
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+    tags:
+      application: ${spring.application.name}
 
 
