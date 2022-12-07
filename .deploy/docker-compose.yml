@@ -1,16 +1,108 @@
 version: "3.7"
 
 services:
-  postgres:
+  monster_pg:
     image: postgres:14
-    env_file:
-      - .env
-    container_name: $POSTGRES_HOST
+    container_name: monster_pg
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: $POSTGRES_DB
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: monster_company
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
     volumes:
       - ./postgres/db:/var/lib/postgresql/data
+
+  eureka-server:
+    restart: always
+    build:
+      context: ../eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    expose:
+      - "8761"
+    environment:
+      SERVER_PORT: 8761
+
+  config-server:
+    restart: always
+    build:
+      context: ../config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      SERVER_PORT: 8888
+      eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+
+  gateway_service:
+    restart: always
+    build:
+      context: ../gateway-service
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      CONFIG_HOST: config-server
+      CONFIG_PORT: 8888
+      eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+      - config-server
+
+  auth-facade:
+    restart: always
+    build:
+      context: ../auth-endpoint-aggregator
+    container_name: auth-facade
+    ports:
+      - "8086:8086"
+    environment:
+      SERVER_PORT: 8086
+      eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+      - config-server
+
+  auth-reactive-facade:
+    restart: always
+    build:
+      context: ../reactive-auth-endpoint-aggregator
+    container_name: auth-reactive-facade
+    ports:
+      - "8087:8087"
+    environment:
+      SERVER_PORT: 8087
+      eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+      - config-server
+
+  user-service:
+    restart: always
+    build:
+      context: ../user-service
+    container_name: user-service
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: 8084
+      CONFIG_HOST: config-server
+      CONFIG_PORT: 8888
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      spring.r2dbc.url: r2dbc:postgresql://monster_pg/monster_company?currentSchema=user_info
+      spring.liquibase.url: jdbc:postgresql://monster_pg:5432/monster_company?currentSchema=user_info
+      eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+      - config-server
+      - monster_pg
+
+
+
+

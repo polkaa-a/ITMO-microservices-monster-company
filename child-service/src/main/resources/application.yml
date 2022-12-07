@@ -1,3 +1,13 @@
+server:
+  port: 8085
+
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+
 spring:
   application:
     name: child-service
