@@ -13,3 +13,28 @@ spring:
     name: infection-service
   config:
     import: optional:configserver:http://localhost:8888
+
+#3
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info,metrics
+  metrics:
+    enable:
+      jvm: true
+    export:
+      prometheus:
+        enabled: true
+        pushgateway:
+          enabled: true
+          push-rate: 5s
+          base-url: 192.168.123.148:9091
+          grouping-key:
+            application: ${spring.application.name}
+            instance: ${spring.application.name}:${server.port}
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+    tags:
+      application: ${spring.application.name}
