@@ -1,9 +1,9 @@
 apiVersion: 1
 
 datasources:
-  - name: Prometheus
+  - name: Prometheus_source
     label: Prometheus
     type: prometheus
     access: proxy
-    url: hhtp://prometheus:9090
+    url: http://host.docker.internal:9090
     isDefault: true

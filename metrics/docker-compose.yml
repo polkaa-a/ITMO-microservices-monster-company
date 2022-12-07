@@ -14,10 +14,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
-    networks:
-      monitoring:
-        aliases:
-          - grafana
+
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -26,10 +23,7 @@ services:
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus:/prometheus
-    networks:
-      monitoring:
-        aliases:
-          - prometheus
+
   pushgateway:
     image: prom/pushgateway
     container_name: pushgateway
@@ -49,6 +43,5 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-networks:
-  monitoring:
+
 
