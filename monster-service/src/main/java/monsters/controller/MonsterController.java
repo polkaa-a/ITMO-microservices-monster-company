@@ -1,5 +1,6 @@
 package monsters.controller;
 
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import monsters.dto.MonsterRatingDTO;
 import monsters.dto.answer.AnswerMonsterDTO;

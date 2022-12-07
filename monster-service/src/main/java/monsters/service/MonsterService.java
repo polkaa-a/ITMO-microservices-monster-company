@@ -1,5 +1,6 @@
 package monsters.service;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import monsters.controller.exception.NotFoundException;
 import monsters.dto.request.RequestMonsterDTO;
@@ -18,9 +19,10 @@ import reactor.util.function.Tuple2;
 import javax.persistence.EntityExistsException;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class MonsterService {
 
     private static final String EXC_EXIST_EMAIL = "monster with this email already exists";
