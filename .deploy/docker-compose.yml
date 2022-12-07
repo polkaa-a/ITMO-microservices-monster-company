@@ -1,9 +1,9 @@
 version: "3.7"
 
 services:
-  monster_pg:
+  monster_company_pg:
     image: postgres:14
-    container_name: monster_pg
+    container_name: monster_company_pg
     ports:
       - "5432:5432"
     environment:
@@ -83,7 +83,6 @@ services:
       - config-server
 
   user-service:
-    restart: always
     build:
       context: ../user-service
     container_name: user-service
@@ -95,13 +94,90 @@ services:
       CONFIG_PORT: 8888
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
-      spring.r2dbc.url: r2dbc:postgresql://monster_pg/monster_company?currentSchema=user_info
-      spring.liquibase.url: jdbc:postgresql://monster_pg:5432/monster_company?currentSchema=user_info
+      spring.r2dbc.url: r2dbc:postgresql://monster_company_pg/monster_company?currentSchema=user_info
+      spring.liquibase.url: jdbc:postgresql://monster_company_pg:5432/monster_company?currentSchema=user_info
       eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
     depends_on:
       - eureka-server
       - config-server
-      - monster_pg
+      - monster_company_pg
+
+  child-service:
+    build:
+      context: ../child-service
+    container_name: child-service
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: 8085
+      CONFIG_HOST: config-server
+      CONFIG_PORT: 8888
+      POSTGRES_HOST: monster_company_pg
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: monster_company
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+      - config-server
+      - monster_company_pg
+
+  monster-service:
+    build:
+      context: ../monster-service
+    container_name: monster-service
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      CONFIG_HOST: config-server
+      CONFIG_PORT: 8888
+      POSTGRES_HOST: monster_db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: monsters
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+      - config-server
+      - monster_db
+
+  infection-service:
+    build:
+      context: ../infection-service
+    container_name: infection-service
+    ports:
+      - "8083:8083"
+    environment:
+      SERVER_PORT: 8083
+      CONFIG_HOST: config-server
+      CONFIG_PORT: 8888
+      POSTGRES_HOST: monster_company_pg
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: monster_company
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      eureka.client.service-url.defaultZone: http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+      - config-server
+      - monster_company_pg
+
+  monster_db:
+    image: postgres:14
+    container_name: monster_db
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: monsters
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+    volumes:
+      - ../monster-service/.deploy/postgres/db:/var/lib/postgresql/data
+      - ../monster-service/.deploy/postgres/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
 
 
 
