@@ -1,5 +1,5 @@
 server:
-  port: 8083
+  port: ${SERVER_PORT:8083}
 
 eureka:
   client:
@@ -12,4 +12,4 @@ spring:
   application:
     name: infection-service
   config:
-    import: optional:configserver:http://localhost:8888
+    import: optional:configserver:http://${CONFIG_HOST:localhost}:${CONFIG_PORT:8888}

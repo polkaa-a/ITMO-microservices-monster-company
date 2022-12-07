@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @ReactiveFeignClient(name = "user-service")
 public interface UserServiceFeignClient {
-    @GetMapping("/users-service/users/{id}")
+    @GetMapping("/inner/{id}")
     @ResponseStatus(HttpStatus.OK)
     Mono<UserResponseDTO> findById(@PathVariable UUID id);
 }
