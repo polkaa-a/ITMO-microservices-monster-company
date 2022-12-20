@@ -43,13 +43,13 @@ public class RoleController {
     }
 
     @GetMapping
-    public Mono<ResponseEntity<PageDTO<RoleDTO>>> findAll(@RequestParam(defaultValue = "0")
-                                                          @Min(value = 0, message = "must not be less than zero")
-                                                          int page,
-                                                          @RequestParam(defaultValue = "5")
-                                                          @Max(value = 50, message = "must not be more than 50 characters")
-                                                          @Min(value = 1, message = "must not be less than one")
-                                                          int size) {
+    public Mono<ResponseEntity<PageDTO<RoleDTO>>>
+    findAll(@RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "must not be less than zero") int page,
+            @RequestParam(defaultValue = "5")
+            @Max(value = 50, message = "must not be more than 50 characters")
+            @Min(value = 1, message = "must not be less than one") int size) {
+
         return roleService.findAll(PageRequest.of(page, size))
                 .map(pageRoles -> {
                     if (pageRoles.isEmpty())

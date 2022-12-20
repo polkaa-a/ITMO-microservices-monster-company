@@ -18,8 +18,8 @@ public class UserDatabaseClient {
     private final UserMapper mapper;
 
     public Mono<User> findByUsername(String username) {
-        String sql = String.format("SELECT u.id, username, password, role_id, name FROM users u JOIN roles r ON r.id = u.role_id " +
-                "WHERE username='%s'", username);
+        String sql = String.format("SELECT u.id, username, password, role_id, name FROM users u JOIN roles r " +
+                "ON r.id = u.role_id WHERE username='%s'", username);
         return client.sql(sql).map(mapper::rowToUser).one();
     }
 
@@ -30,14 +30,15 @@ public class UserDatabaseClient {
     }
 
     public Flux<User> findAll(Pageable pageable) {
-        String sql = String.format("SELECT u.id, username, password, role_id, name FROM users u JOIN roles r ON r.id = u.role_id " +
-                "LIMIT %d OFFSET %d", pageable.getPageSize(), pageable.getOffset());
+        String sql = String.format("SELECT u.id, username, password, role_id, name FROM users u JOIN roles r " +
+                "ON r.id = u.role_id LIMIT %d OFFSET %d", pageable.getPageSize(), pageable.getOffset());
         return client.sql(sql).map(mapper::rowToUser).all();
     }
 
     public Flux<User> findAllByRole(String role, Pageable pageable) {
-        String sql = String.format("SELECT u.id, username, password, role_id, name FROM users u JOIN roles r ON r.id = u.role_id " +
-                "WHERE r.name='%s' LIMIT %d OFFSET %d", role, pageable.getPageSize(), pageable.getOffset());
+        String sql = String.format("SELECT u.id, username, password, role_id, name FROM users u JOIN roles r " +
+                        "ON r.id = u.role_id WHERE r.name='%s' LIMIT %d OFFSET %d",
+                role, pageable.getPageSize(), pageable.getOffset());
         return client.sql(sql).map(mapper::rowToUser).all();
     }
 }

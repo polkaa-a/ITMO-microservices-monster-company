@@ -47,14 +47,14 @@ public class UserController {
     }
 
     @GetMapping
-    public Mono<ResponseEntity<PageDTO<UserResponseDTO>>> findAll(@RequestParam(defaultValue = "0")
-                                                                  @Min(value = 0, message = "must not be less than zero")
-                                                                  int page,
-                                                                  @RequestParam(defaultValue = "5")
-                                                                  @Max(value = 50, message = "must not be more than 50 characters")
-                                                                  @Min(value = 1, message = "must not be less than one")
-                                                                  int size,
-                                                                  @RequestParam(required = false) String role) {
+    public Mono<ResponseEntity<PageDTO<UserResponseDTO>>>
+    findAll(@RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "must not be less than zero") int page,
+            @RequestParam(defaultValue = "5")
+            @Max(value = 50, message = "must not be more than 50 characters")
+            @Min(value = 1, message = "must not be less than one") int size,
+            @RequestParam(required = false) String role) {
+
         return userService.findAll(PageRequest.of(page, size), role)
                 .map(pageUsers -> {
                     if (pageUsers.isEmpty()) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
