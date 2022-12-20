@@ -46,12 +46,14 @@ public class InfectionController {
 
 
     @GetMapping
-    public ResponseEntity<PageDTO<InfectionResponseDTO>> findAll(@RequestParam(defaultValue = "0")
-                                                                 @Min(value = 0, message = "must not be less than zero") int page,
-                                                                 @RequestParam(defaultValue = "5")
-                                                                 @Max(value = 50, message = "must not be more than 50 characters") int size,
-                                                                 @RequestParam(required = false) UUID monsterId,
-                                                                 @RequestParam(required = false) Date date) {
+    public ResponseEntity<PageDTO<InfectionResponseDTO>>
+    findAll(@RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "must not be less than zero") int page,
+            @RequestParam(defaultValue = "5")
+            @Max(value = 50, message = "must not be more than 50 characters") int size,
+            @RequestParam(required = false) UUID monsterId,
+            @RequestParam(required = false) Date date) {
+
         Page<InfectionEntity> pageInfection = infectionService.findAll(PageRequest.of(page, size), monsterId, date);
         if (pageInfection.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

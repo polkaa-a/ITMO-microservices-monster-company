@@ -45,13 +45,13 @@ public class InfectedThingController {
 
 
     @GetMapping
-    public ResponseEntity<PageDTO<InfectedThingResponseDTO>> findAll(@RequestParam(defaultValue = "0")
-                                                                     @Min(value = 0, message = "must not be less than zero")
-                                                                     int page,
-                                                                     @RequestParam(defaultValue = "5")
-                                                                     @Max(value = 50, message = "must not be more than 50 characters")
-                                                                     int size,
-                                                                     @RequestParam(required = false) UUID doorId) {
+    public ResponseEntity<PageDTO<InfectedThingResponseDTO>>
+    findAll(@RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "must not be less than zero") int page,
+            @RequestParam(defaultValue = "5")
+            @Max(value = 50, message = "must not be more than 50 characters") int size,
+            @RequestParam(required = false) UUID doorId) {
+
         Page<InfectedThingEntity> pageThings = infectedThingService.findAll(PageRequest.of(page, size), doorId);
         if (pageThings.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -60,7 +60,6 @@ public class InfectedThingController {
                     infectedThingMapper::mapEntityToDto
             )), HttpStatus.OK);
         }
-
     }
 
     @DeleteMapping("/{id}")
