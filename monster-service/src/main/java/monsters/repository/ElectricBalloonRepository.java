@@ -24,7 +24,8 @@ public interface ElectricBalloonRepository extends JpaRepository<ElectricBalloon
             "join e.fearActionEntity f " +
             "where f.date=:date " +
             "and e.cityEntity.id=:cityId")
-    Page<ElectricBalloonEntity> findAllFilledByDateAndCity(@Param("date") Date date, @Param("cityId") UUID cityId, Pageable pageable);
+    Page<ElectricBalloonEntity>
+    findAllFilledByDateAndCity(@Param("date") Date date, @Param("cityId") UUID cityId, Pageable pageable);
 
 
     @Query("select e from ElectricBalloonEntity e " +

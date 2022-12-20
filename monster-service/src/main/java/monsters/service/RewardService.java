@@ -34,8 +34,9 @@ public class RewardService {
                         .flatMap(hasElements -> hasElements ?
                                 Mono.error(new EntityExistsException(EXC_EXIST + ": " + rewardDTO.getMoney())) :
                                 Mono.just(rewardMapper.mapDtoToEntity(rewardDTO))
-                                        .flatMap(rewardEntity -> Mono.fromCallable(() -> rewardRepository.save(rewardEntity))
-                                                .subscribeOn(Schedulers.boundedElastic()))));
+                                        .flatMap(rewardEntity ->
+                                                Mono.fromCallable(() -> rewardRepository.save(rewardEntity))
+                                                        .subscribeOn(Schedulers.boundedElastic()))));
     }
 
     public Mono<RewardEntity> findById(UUID rewardId) {

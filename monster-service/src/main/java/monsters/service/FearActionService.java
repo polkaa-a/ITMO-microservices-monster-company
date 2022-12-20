@@ -23,7 +23,9 @@ public class FearActionService {
     private final FearActionMapper fearActionMapper;
     private final MonsterService monsterService;
 
-    public FearActionService(@Lazy MonsterService monsterService, FearActionRepository fearActionRepository, FearActionMapper fearActionMapper) {
+    public FearActionService(@Lazy MonsterService monsterService,
+                             FearActionRepository fearActionRepository,
+                             FearActionMapper fearActionMapper) {
         this.fearActionRepository = fearActionRepository;
         this.monsterService = monsterService;
         this.fearActionMapper = fearActionMapper;
@@ -31,11 +33,11 @@ public class FearActionService {
 
     public Mono<FearActionEntity> save(Mono<RequestFearActionDTO> fearActionDTOMono) {
         return fearActionDTOMono
-                .flatMap(fearActionDTO -> Mono.zip(Mono.just(fearActionDTO), monsterService.findById(fearActionDTO.getMonsterId())))
+                .flatMap(fearActionDTO ->
+                        Mono.zip(Mono.just(fearActionDTO), monsterService.findById(fearActionDTO.getMonsterId())))
                 .flatMap(tuple -> Mono.just(fearActionMapper.mapDtoToEntity(tuple.getT1(), tuple.getT2())))
-                .flatMap(fearActionEntity ->
-                        Mono.fromCallable(() -> fearActionRepository.save(fearActionEntity))
-                                .subscribeOn(Schedulers.boundedElastic()));
+                .flatMap(fearActionEntity -> Mono.fromCallable(() -> fearActionRepository.save(fearActionEntity))
+                        .subscribeOn(Schedulers.boundedElastic()));
     }
 
     public Mono<FearActionEntity> findById(UUID fearActionId) {

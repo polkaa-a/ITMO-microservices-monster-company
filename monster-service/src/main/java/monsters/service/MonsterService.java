@@ -1,6 +1,5 @@
 package monsters.service;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import monsters.controller.exception.NotFoundException;
 import monsters.dto.request.RequestMonsterDTO;
@@ -19,7 +18,6 @@ import reactor.util.function.Tuple2;
 import javax.persistence.EntityExistsException;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -54,8 +52,9 @@ public class MonsterService {
                         .flatMap(hasElements -> hasElements ?
                                 Mono.error(new EntityExistsException(EXC_EXIST_USER + ": " + monsterDTO.getUserId())) :
                                 Mono.just(monsterMapper.mapDtoToEntity(monsterDTO))
-                                        .flatMap(monsterEntity -> Mono.fromCallable(() -> monsterRepository.save(monsterEntity))
-                                                .subscribeOn(Schedulers.boundedElastic()))));
+                                        .flatMap(monsterEntity ->
+                                                Mono.fromCallable(() -> monsterRepository.save(monsterEntity))
+                                                        .subscribeOn(Schedulers.boundedElastic()))));
     }
 
     public Flux<MonsterEntity> findAllByDateOfFearAction(java.util.Date date, int page, int size) {

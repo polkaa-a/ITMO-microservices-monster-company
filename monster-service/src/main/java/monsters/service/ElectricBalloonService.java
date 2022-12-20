@@ -25,7 +25,10 @@ public class ElectricBalloonService {
     private final FearActionService fearActionService;
     private final CityService cityService;
 
-    public ElectricBalloonService(@Lazy FearActionService fearActionService, CityService cityService, ElectricBalloonMapper electricBalloonMapper, ElectricBalloonRepository electricBalloonRepository) {
+    public ElectricBalloonService(@Lazy FearActionService fearActionService,
+                                  CityService cityService,
+                                  ElectricBalloonMapper electricBalloonMapper,
+                                  ElectricBalloonRepository electricBalloonRepository) {
         this.electricBalloonRepository = electricBalloonRepository;
         this.electricBalloonMapper = electricBalloonMapper;
         this.cityService = cityService;
@@ -35,11 +38,15 @@ public class ElectricBalloonService {
     public Mono<ElectricBalloonEntity> save(Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
         return electricBalloonDTOMono
                 .flatMap(electricBalloonDTO ->
-                        Mono.zip(Mono.just(electricBalloonDTO), fearActionService.findById(electricBalloonDTO.getFearActionId()), cityService.findById(electricBalloonDTO.getCityId())))
-                .flatMap(tuple -> Mono.just(electricBalloonMapper.mapDtoToEntity(tuple.getT1(), tuple.getT2(), tuple.getT3())))
-                .flatMap(electricBalloonEntity -> Mono.fromCallable(() -> electricBalloonRepository.save(electricBalloonEntity))
-                        .subscribeOn(Schedulers.boundedElastic()))
-                .doOnError(Throwable::printStackTrace);
+                        Mono.zip(Mono.just(electricBalloonDTO),
+                                fearActionService.findById(electricBalloonDTO.getFearActionId()),
+                                cityService.findById(electricBalloonDTO.getCityId()))
+                ).flatMap(tuple ->
+                        Mono.just(electricBalloonMapper
+                                .mapDtoToEntity(tuple.getT1(), tuple.getT2(), tuple.getT3()))
+                ).flatMap(electricBalloonEntity ->
+                        Mono.fromCallable(() -> electricBalloonRepository.save(electricBalloonEntity))
+                                .subscribeOn(Schedulers.boundedElastic()));
     }
 
     public Mono<ElectricBalloonEntity> findById(UUID electricBalloonId) {
@@ -53,21 +60,24 @@ public class ElectricBalloonService {
 
 
     public Flux<ElectricBalloonEntity> findAllFilledByDate(Date date, int page, int size) {
-        return Mono.fromCallable(() -> electricBalloonRepository.findAllFilledByDate(date, PageRequest.of(page, size)).stream())
+        return Mono.fromCallable(() -> electricBalloonRepository
+                        .findAllFilledByDate(date, PageRequest.of(page, size)).stream())
                 .subscribeOn(Schedulers.boundedElastic())
                 .flux()
                 .flatMap(Flux::fromStream);
     }
 
     public Flux<ElectricBalloonEntity> findAllByMonsterId(UUID monsterId, int page, int size) {
-        return Mono.fromCallable(() -> electricBalloonRepository.findAllByMonsterId(monsterId, PageRequest.of(page, size)).stream())
+        return Mono.fromCallable(() -> electricBalloonRepository
+                        .findAllByMonsterId(monsterId, PageRequest.of(page, size)).stream())
                 .subscribeOn(Schedulers.boundedElastic())
                 .flux()
                 .flatMap(Flux::fromStream);
     }
 
     public Flux<ElectricBalloonEntity> findAllFilledByDateAndCity(Date date, UUID citiId, int page, int size) {
-        return Mono.fromCallable(() -> electricBalloonRepository.findAllFilledByDateAndCity(date, citiId, PageRequest.of(page, size)).stream())
+        return Mono.fromCallable(() -> electricBalloonRepository
+                        .findAllFilledByDateAndCity(date, citiId, PageRequest.of(page, size)).stream())
                 .subscribeOn(Schedulers.boundedElastic())
                 .flux()
                 .flatMap(Flux::fromStream);
@@ -76,12 +86,16 @@ public class ElectricBalloonService {
     public Mono<ElectricBalloonEntity> updateById(UUID electricBalloonId, Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
         return electricBalloonDTOMono
                 .flatMap(electricBalloonDTO ->
-                        Mono.zip(electricBalloonDTOMono, fearActionService.findById(electricBalloonDTO.getFearActionId()), cityService.findById(electricBalloonDTO.getCityId())))
-                .flatMap(tuple -> Mono.just(electricBalloonMapper.mapDtoToEntity(tuple.getT1(), tuple.getT2(), tuple.getT3())))
-                .flatMap(electricBalloonEntity -> {
+                        Mono.zip(electricBalloonDTOMono,
+                                fearActionService.findById(electricBalloonDTO.getFearActionId()),
+                                cityService.findById(electricBalloonDTO.getCityId()))
+                ).flatMap(tuple ->
+                        Mono.just(electricBalloonMapper.mapDtoToEntity(tuple.getT1(), tuple.getT2(), tuple.getT3()))
+                ).flatMap(electricBalloonEntity -> {
                     electricBalloonEntity.setId(electricBalloonId);
-                    return Mono.fromCallable(() -> electricBalloonRepository.findById(electricBalloonEntity.getId()).stream())
-                            .subscribeOn(Schedulers.boundedElastic())
+                    return Mono.fromCallable(() ->
+                                    electricBalloonRepository.findById(electricBalloonEntity.getId()).stream()
+                            ).subscribeOn(Schedulers.boundedElastic())
                             .flux()
                             .flatMap(Flux::fromStream)
                             .singleOrEmpty()

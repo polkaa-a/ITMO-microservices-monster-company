@@ -34,49 +34,87 @@ public class ElectricBalloonController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<AnswerElectricBalloonDTO> addElectricBalloon(@RequestBody @Valid Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
+    public Mono<AnswerElectricBalloonDTO>
+    addElectricBalloon(@RequestBody @Valid Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
         return electricBalloonService.save(electricBalloonDTOMono)
-                .flatMap(electricBalloonEntity -> userServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getMonsterEntity().getUserId())
-                        .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getDoorId()))
-                                .subscribeOn(Schedulers.boundedElastic()))
-                        .flatMap(tuple -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))));
+                .flatMap(electricBalloonEntity ->
+                        userServiceFeignClient.findById(electricBalloonEntity
+                                .getFearActionEntity()
+                                .getMonsterEntity()
+                                .getUserId()
+                        ).zipWith(Mono.fromCallable(() ->
+                                        childServiceFeignClient.findById(electricBalloonEntity
+                                                .getFearActionEntity()
+                                                .getDoorId())
+                                ).subscribeOn(Schedulers.boundedElastic())
+                        ).flatMap(tuple ->
+                                Mono.just(electricBalloonMapper
+                                        .mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))));
     }
 
     @GetMapping("/{electricBalloonId}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<AnswerElectricBalloonDTO> getElectricBalloon(@PathVariable UUID electricBalloonId) {
         return electricBalloonService.findById(electricBalloonId)
-                .flatMap(electricBalloonEntity -> userServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getMonsterEntity().getUserId())
-                        .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getDoorId()))
-                                .subscribeOn(Schedulers.boundedElastic()))
-                        .flatMap(tuple -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))));
+                .flatMap(electricBalloonEntity ->
+                        userServiceFeignClient.findById(electricBalloonEntity
+                                        .getFearActionEntity()
+                                        .getMonsterEntity()
+                                        .getUserId()
+                                ).zipWith(Mono.fromCallable(() ->
+                                        childServiceFeignClient.findById(electricBalloonEntity
+                                                .getFearActionEntity()
+                                                .getDoorId())
+                                ).subscribeOn(Schedulers.boundedElastic()))
+                                .flatMap(tuple ->
+                                        Mono.just(electricBalloonMapper
+                                                .mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))
+                                ));
     }
 
     @GetMapping("/date/{date}")
-    public Mono<ResponseEntity<Flux<AnswerElectricBalloonDTO>>> findAllFilledByDateAndCity(@PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date,
-                                                                                           @RequestParam(required = false) UUID cityId,
-                                                                                           @RequestParam(defaultValue = "0")
-                                                                                           @Min(value = 0, message = "must not be less than zero") int page,
-                                                                                           @RequestParam(defaultValue = "5")
-                                                                                           @Max(value = 50, message = "must not be more than 50 characters") int size) {
+    public Mono<ResponseEntity<Flux<AnswerElectricBalloonDTO>>>
+    findAllFilledByDateAndCity(@PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date,
+                               @RequestParam(required = false) UUID cityId,
+                               @RequestParam(defaultValue = "0")
+                               @Min(value = 0, message = "must not be less than zero") int page,
+                               @RequestParam(defaultValue = "5")
+                               @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
-        var cityNotNullFlux = electricBalloonService.findAllFilledByDateAndCity(date, cityId, page, size);
+        var cityNotNullFlux = electricBalloonService
+                .findAllFilledByDateAndCity(date, cityId, page, size);
+
         var cityIsNullFlux = electricBalloonService.findAllFilledByDate(date, page, size);
-        var electricBalloonEntityFlux = Mono.just(cityId != null).flux().flatMap(notNull -> notNull ? cityNotNullFlux : cityIsNullFlux);
+
+        var electricBalloonEntityFlux = Mono.just(cityId != null)
+                .flux().flatMap(notNull -> notNull ? cityNotNullFlux : cityIsNullFlux);
 
         var electricBalloonDTOFlux = electricBalloonEntityFlux
                 .buffer(BUFFER_SIZE)
-                .flatMap(it -> Flux.fromIterable(it)
-                        .flatMap(electricBalloonEntity -> userServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getMonsterEntity().getUserId())
-                                .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getDoorId()))
-                                        .subscribeOn(Schedulers.boundedElastic()))
-                                .flatMap(tuple -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))))
+                .flatMap(it -> Flux.fromIterable(it).flatMap(electricBalloonEntity ->
+                                userServiceFeignClient
+                                        .findById(electricBalloonEntity
+                                                .getFearActionEntity()
+                                                .getMonsterEntity()
+                                                .getUserId()
+                                        ).zipWith(Mono.fromCallable(() ->
+                                                childServiceFeignClient
+                                                        .findById(electricBalloonEntity
+                                                                .getFearActionEntity()
+                                                                .getDoorId())
+                                        ).subscribeOn(Schedulers.boundedElastic()))
+                                        .flatMap(tuple -> Mono.just(electricBalloonMapper
+                                                .mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))))
                         .subscribeOn(Schedulers.parallel()));
 
-        var emptyResponseMono = Mono.just(new ResponseEntity<Flux<AnswerElectricBalloonDTO>>(HttpStatus.NO_CONTENT));
-        var responseMono = Mono.just(new ResponseEntity<>(electricBalloonDTOFlux, HttpStatus.OK));
+        var emptyResponseMono = Mono
+                .just(new ResponseEntity<Flux<AnswerElectricBalloonDTO>>(HttpStatus.NO_CONTENT));
 
-        return electricBalloonEntityFlux.hasElements().flatMap(hasElements -> hasElements ? responseMono : emptyResponseMono);
+        var responseMono = Mono
+                .just(new ResponseEntity<>(electricBalloonDTOFlux, HttpStatus.OK));
+
+        return electricBalloonEntityFlux.hasElements()
+                .flatMap(hasElements -> hasElements ? responseMono : emptyResponseMono);
     }
 
     @DeleteMapping("/{electricBalloonId}")
@@ -87,11 +125,21 @@ public class ElectricBalloonController {
 
     @PutMapping("/{electricBalloonId}")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<AnswerElectricBalloonDTO> putElectricBalloon(@PathVariable UUID electricBalloonId, @RequestBody @Valid Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
+    public Mono<AnswerElectricBalloonDTO>
+    putElectricBalloon(@PathVariable UUID electricBalloonId,
+                       @RequestBody @Valid Mono<RequestElectricBalloonDTO> electricBalloonDTOMono) {
         return electricBalloonService.updateById(electricBalloonId, electricBalloonDTOMono)
-                .flatMap(electricBalloonEntity -> userServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getMonsterEntity().getUserId())
-                        .zipWith(Mono.fromCallable(() -> childServiceFeignClient.findById(electricBalloonEntity.getFearActionEntity().getDoorId()))
-                                .subscribeOn(Schedulers.boundedElastic()))
-                        .flatMap(tuple -> Mono.just(electricBalloonMapper.mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))));
+                .flatMap(electricBalloonEntity ->
+                        userServiceFeignClient.findById(electricBalloonEntity
+                                .getFearActionEntity()
+                                .getMonsterEntity()
+                                .getUserId()
+                        ).zipWith(Mono.fromCallable(() ->
+                                        childServiceFeignClient.findById(electricBalloonEntity
+                                                .getFearActionEntity()
+                                                .getDoorId())
+                                ).subscribeOn(Schedulers.boundedElastic())
+                        ).flatMap(tuple -> Mono.just(electricBalloonMapper
+                                .mapEntityToDto(electricBalloonEntity, tuple.getT1(), tuple.getT2()))));
     }
 }

@@ -32,10 +32,11 @@ public class CityController {
     }
 
     @GetMapping
-    public Mono<ResponseEntity<Flux<CityDTO>>> findAll(@RequestParam(defaultValue = "0")
-                                                       @Min(value = 0, message = "must not be less than zero") int page,
-                                                       @RequestParam(defaultValue = "5")
-                                                       @Max(value = 50, message = "must not be more than 50 characters") int size) {
+    public Mono<ResponseEntity<Flux<CityDTO>>>
+    findAll(@RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "must not be less than zero") int page,
+            @RequestParam(defaultValue = "5")
+            @Max(value = 50, message = "must not be more than 50 characters") int size) {
 
         var cityDTOFlux = cityService.findAll(page, size)
                 .buffer(BUFFER_SIZE)
@@ -44,8 +45,11 @@ public class CityController {
                         .subscribeOn(Schedulers.parallel()))
                 .flatMap(Mono::flux);
 
-        var emptyResponseMono = Mono.just(new ResponseEntity<Flux<CityDTO>>(HttpStatus.NO_CONTENT));
-        var responseMono = Mono.just(new ResponseEntity<>(cityDTOFlux, HttpStatus.OK));
+        var emptyResponseMono = Mono
+                .just(new ResponseEntity<Flux<CityDTO>>(HttpStatus.NO_CONTENT));
+
+        var responseMono = Mono
+                .just(new ResponseEntity<>(cityDTOFlux, HttpStatus.OK));
 
         return cityDTOFlux.hasElements().flatMap(hasElements -> hasElements ? responseMono : emptyResponseMono);
     }
@@ -59,7 +63,8 @@ public class CityController {
     @PutMapping("/{cityId}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<CityDTO> putCity(@PathVariable UUID cityId, @RequestBody @Valid Mono<CityDTO> cityDTOMono) {
-        return cityService.updateById(cityId, cityDTOMono).flatMap(cityEntity -> Mono.just(cityMapper.mapEntityToDto(cityEntity)));
+        return cityService.updateById(cityId, cityDTOMono).flatMap(cityEntity ->
+                Mono.just(cityMapper.mapEntityToDto(cityEntity)));
     }
 }
 
