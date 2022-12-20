@@ -44,10 +44,10 @@ public class DoorController {
     @GetMapping
     public ResponseEntity<PageDTO<DoorDTO>> findAll(@RequestParam(defaultValue = "0")
                                                     @Min(value = 0, message = "must not be less than zero")
-                                                    int page,
+                                                            int page,
                                                     @RequestParam(defaultValue = "5")
                                                     @Max(value = 50, message = "must not be more than 50 characters")
-                                                    int size,
+                                                            int size,
                                                     @RequestParam(required = false) Boolean status) {
         Page<DoorEntity> pageChild = doorService.findAll(PageRequest.of(page, size), status);
         if (pageChild.isEmpty()) {
