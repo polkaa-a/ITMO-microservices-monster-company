@@ -6,7 +6,6 @@ import com.example.files.controller.exception.object.GetObjectException;
 import com.example.files.controller.exception.object.UploadObjectException;
 import io.minio.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -18,25 +17,21 @@ import java.io.InputStream;
 @RequiredArgsConstructor
 public class MinIOService {
 
-    //@Value("$(minio.bucket-name)")
-    private final String bucketName = "storage";
-
     private static final int BUFFER_SIZE = 5;
-    private static final String EXC_OBJ= "Bad object";
-    private static final String EXC_DELETE= "Error occurred while deleting object";
-    private static final String EXC_DOWNLOAD= "Error occurred while downloading object";
-    private static final String EXC_UPLOAD= "Error occurred while uploading object";
-    private static final String EXC_GET= "Error occurred while getting objects";
-
+    private static final String EXC_DELETE = "Error occurred while deleting object";
+    private static final String EXC_DOWNLOAD = "Error occurred while downloading object";
+    private static final String EXC_UPLOAD = "Error occurred while uploading object";
+    private static final String EXC_GET = "Error occurred while getting objects";
+    private final String bucketName = "storage";
     private final MinioClient minioClient;
 
-    public Flux<String> getListOfObjects(String prefix){
+    public Flux<String> getListOfObjects(String prefix) {
         return Mono.fromCallable(() -> minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(bucketName)
-                        .prefix(prefix)
-                        .recursive(true)
-                        .build())
+                        ListObjectsArgs.builder()
+                                .bucket(bucketName)
+                                .prefix(prefix)
+                                .recursive(true)
+                                .build())
                 ).flux()
                 .flatMap(Flux::fromIterable)
                 .buffer(BUFFER_SIZE)
@@ -44,7 +39,7 @@ public class MinIOService {
                         .flatMap(result -> {
                             try {
                                 return Mono.just(result.get().objectName());
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 return Mono.error(
                                         new GetObjectException(EXC_GET + " from " + bucketName + ": " + e.getMessage())
                                 );
@@ -53,7 +48,7 @@ public class MinIOService {
                         .subscribeOn(Schedulers.parallel()));
     }
 
-    public Flux<String> getListOfObjectsByUser(String userName){
+    public Flux<String> getListOfObjectsByUser(String userName) {
         return getListOfObjects(userName);
     }
 
@@ -89,7 +84,7 @@ public class MinIOService {
         });
     }
 
-    public Mono<Void> deleteObject(String objectName){
+    public Mono<Void> deleteObject(String objectName) {
         return Mono.fromRunnable(() -> {
             try {
                 minioClient.removeObject(RemoveObjectArgs.builder()

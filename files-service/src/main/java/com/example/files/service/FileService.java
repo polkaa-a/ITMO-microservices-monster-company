@@ -14,7 +14,7 @@ import java.io.FileInputStream;
 public class FileService {
     private final MinIOService minIOService;
 
-    public Mono<FileResponseDTO> uploadFile(Mono<FileRequestDTO> fileDTOMono){
+    public Mono<FileResponseDTO> uploadFile(Mono<FileRequestDTO> fileDTOMono) {
         return fileDTOMono.flatMap(fileDTO ->
                 minIOService.uploadObject(fileDTO.getObjectName(),
                         Mono.fromCallable(() -> new FileInputStream(fileDTO.getAbsolutePath()))
@@ -27,17 +27,17 @@ public class FileService {
                 .flatMap(objectName -> Mono.fromCallable(() -> new FileResponseDTO(objectName)));
     }
 
-    public Flux<FileResponseDTO> getAllUploadedFilesByUser(String userName){
+    public Flux<FileResponseDTO> getAllUploadedFilesByUser(String userName) {
         return minIOService.getListOfObjectsByUser(userName)
                 .flatMap(objectName -> Mono.fromCallable(() -> new FileResponseDTO(objectName)));
     }
 
-    public Mono<Void> downloadFile(Mono<FileRequestDTO> fileDTOMono){
+    public Mono<Void> downloadFile(Mono<FileRequestDTO> fileDTOMono) {
         return fileDTOMono.flatMap(fileRequestDTO ->
                 minIOService.downloadObject(fileRequestDTO.getObjectName(), fileRequestDTO.getAbsolutePath()));
     }
 
-    public Mono<Void> deleteFile(Mono<FileRequestDTO> fileDTOMono){
+    public Mono<Void> deleteFile(Mono<FileRequestDTO> fileDTOMono) {
         return fileDTOMono.flatMap(fileRequestDTO ->
                 minIOService.deleteObject(fileRequestDTO.getObjectName()));
     }

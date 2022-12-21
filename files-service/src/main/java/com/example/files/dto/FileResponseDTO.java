@@ -17,13 +17,13 @@ public class FileResponseDTO {
     @NotNull
     private String fileName;
 
-    public String getObjectName(){
-        return userName + SEPARATOR + fileName;
-    }
-
-    public FileResponseDTO(String objectName){
+    public FileResponseDTO(String objectName) {
         int separator = objectName.indexOf(SEPARATOR);
         this.userName = objectName.substring(0, separator);
         this.fileName = objectName.substring(separator + 1);
+    }
+
+    public String getObjectName() {
+        return userName + SEPARATOR + fileName;
     }
 }

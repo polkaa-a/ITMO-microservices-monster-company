@@ -18,7 +18,7 @@ public class FileRequestDTO {
     @NotNull
     private String fileName;
 
-    public String getObjectName(){
+    public String getObjectName() {
         return userName + SEPARATOR + fileName;
     }
 }
