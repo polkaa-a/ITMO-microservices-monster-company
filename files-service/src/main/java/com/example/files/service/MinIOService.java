@@ -18,8 +18,9 @@ import java.io.InputStream;
 @RequiredArgsConstructor
 public class MinIOService {
 
-    @Value("$(minio.bucket-name)")
-    private String bucketName;
+    //@Value("$(minio.bucket-name)")
+    private final String bucketName = "storage";
+
     private static final int BUFFER_SIZE = 5;
     private static final String EXC_OBJ= "Bad object";
     private static final String EXC_DELETE= "Error occurred while deleting object";

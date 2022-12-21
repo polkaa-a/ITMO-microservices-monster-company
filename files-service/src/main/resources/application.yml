@@ -1,9 +1,8 @@
 minio:
-  url: minio
-  accessKey: minioadmin
-  secretKey: minioadmin
-  bucket-name: files-storage
-  secure: false
+  url: http://127.0.0.1/:9000
+  accessKey: "minioadmin"
+  secretKey: "minioadmin"
+  bucket-name: files
 
 server:
   port: 8089

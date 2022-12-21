@@ -2,13 +2,12 @@ package com.example.files.service;
 
 import com.example.files.dto.FileRequestDTO;
 import com.example.files.dto.FileResponseDTO;
-import io.minio.ObjectWriteResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.*;
+import java.io.FileInputStream;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +22,9 @@ public class FileService {
                         Mono.fromCallable(() -> new FileResponseDTO(objectWriteResponse.object()))));
     }
 
-    public Flux<FileResponseDTO> getAllUploadedFiles(){
-       return minIOService.getListOfObjects("")
-               .flatMap(objectName -> Mono.fromCallable(() -> new FileResponseDTO(objectName)));
+    public Flux<FileResponseDTO> getAllUploadedFiles() {
+        return minIOService.getListOfObjects("")
+                .flatMap(objectName -> Mono.fromCallable(() -> new FileResponseDTO(objectName)));
     }
 
     public Flux<FileResponseDTO> getAllUploadedFilesByUser(String userName){
