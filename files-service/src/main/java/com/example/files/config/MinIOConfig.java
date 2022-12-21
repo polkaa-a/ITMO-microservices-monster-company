@@ -20,7 +20,6 @@ public class MinIOConfig {
 
     @Bean
     public MinioClient MinIOClient(){
-
         OkHttpClient httpClient = new OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.MINUTES)
                 .writeTimeout(10, TimeUnit.MINUTES)
@@ -28,7 +27,7 @@ public class MinIOConfig {
                 .build();
 
         return MinioClient.builder()
-                .endpoint("http://127.0.0.1:9001/")
+                .endpoint("http://127.0.0.1:9000/")
                 .httpClient(httpClient)
                 .credentials("minioadmin", "minioadmin")
                 .build();

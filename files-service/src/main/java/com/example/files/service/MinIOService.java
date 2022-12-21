@@ -35,6 +35,7 @@ public class MinIOService {
                 ListObjectsArgs.builder()
                         .bucket(bucketName)
                         .prefix(prefix)
+                        .recursive(true)
                         .build())
                 ).flux()
                 .flatMap(Flux::fromIterable)

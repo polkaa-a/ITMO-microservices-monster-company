@@ -40,7 +40,7 @@ public class FileController {
         return fileService.downloadFile(fileRequestDTOMono);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteFile(@RequestBody @Valid Mono<FileRequestDTO> fileRequestDTOMono) {
         return fileService.deleteFile(fileRequestDTOMono);
