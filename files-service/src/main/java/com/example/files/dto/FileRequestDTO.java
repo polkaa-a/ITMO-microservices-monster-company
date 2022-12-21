@@ -1,7 +1,8 @@
 package com.example.files.dto;
 
 import lombok.*;
-import org.jetbrains.annotations.NotNull;
+
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter

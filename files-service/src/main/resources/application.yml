@@ -1,0 +1,22 @@
+minio:
+  url: minio
+  accessKey: minioadmin
+  secretKey: minioadmin
+  bucket-name: files-storage
+  secure: false
+
+server:
+  port: 8089
+
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+
+spring:
+  application:
+    name: files-service
+  config:
+    import: optional:configserver:http://localhost:8888
